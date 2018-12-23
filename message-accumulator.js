@@ -18,6 +18,7 @@
  * limitations under the License.
  */
 
+
 /**
  * MessageAccumulator.js - accumulate a translatable message as a string
  */
@@ -43,6 +44,62 @@ export default class MessageAccumulator {
     }
 
     /**
+     * Factory method to create a new MessageAccumulator instance from
+     * the given string and a source message accumulator. This will
+     * parse the string and create the equivalent tree from it, and
+     * then attach the "extra" information from the source accumulator
+     * to the equivalent nodes in the new accumulator.
+     *
+     * @param {String} translated the translated string to parse
+     * @param {MessageAccumulator} source the source message
+     * for this translation
+     * @returns {MessageAccumulator} a new message accumulator
+     * instance equivalent to the given string
+     */
+    static create(str, source) {
+        let ma = new MessageAccumulator();
+        ma.root.children = ma._parse(str, (ma && ma.getMapping()) || {});
+    }
+
+    /**
+     * @private
+     */
+    _parse(string, mapping) {
+        let match,
+            re = /(<(c\d+)>.*<\/\2>)/g,
+            first = /^<c(\d+)>/;
+
+        const parts = string.split(re);
+        let children = [];
+
+        for (var i = 0; i < parts.length; i++) {
+            first.lastIndex = 0;
+            if ((match = first.exec(parts[i])) !== null) {
+                const index = match[1];
+                const len = match[0].length;
+                // strip off the outer tags before processing the stuff in the middle
+                const substr = parts[i].substring(len, parts[i].length - len - 1);
+                const component = (mapping && mapping[name]) || {
+                    children: [],
+                    parent: this.currentLevel,
+                    index: index,
+                    type: 'component'
+                };
+                this.currentLevel = component;
+                component.children = this._parse(substr, mapping);
+
+                children.push(component);
+                i++; // skip the number in the next iteration
+            } else if (parts[i] && parts[i].length) {
+                // don't store empty strings
+                children.push(parts[i]);
+            }
+        }
+
+        return children.length === 0  ? null : (children.length === 1 ? children[0] : children);
+    }
+
+    /**
      * Add text to the current context of the string.
      * @param {string} text the text to add
      */
@@ -56,8 +113,11 @@ export default class MessageAccumulator {
     /**
      * Add a plural choice context to the current string.
      * @param {string} category the category of the plural
+     * @param {Object} extra extra information that the caller would
+     * like to associate with the plural. For example, this may
+     * be a node in an AST from parsing the original text.
      */
-    pushPlural(category) {
+    pushPlural(category, extra) {
         const newNode = {
             children: [],
             parent: this.currentLevel,
@@ -72,13 +132,17 @@ export default class MessageAccumulator {
     /**
      * Create a new subcontext for a component such that all text
      * added to the accumulator goes into the new context.
+     * @param {Object} extra extra information that the caller would
+     * like to associate with the component. For example, this may
+     * be a node in an AST from parsing the original text.
      */
-    pushComponent() {
+    pushComponent(extra) {
         const newNode = {
             children: [],
             parent: this.currentLevel,
             index: this.componentIndex++,
-            type: 'component'
+            type: 'component',
+            extra
         };
         this.currentLevel.children.push(newNode);
         this.currentLevel = newNode;
@@ -108,12 +172,9 @@ export default class MessageAccumulator {
         let ret = '';
         if (node.children) {
             node.children.forEach(subnode => {
-                ret +=
-                    typeof subnode === 'object'
-                        ? `<c${subnode.index}>${this.serialize(subnode)}</c${
-                              subnode.index
-                          }>`
-                        : subnode;
+                ret += typeof subnode === 'object' ?
+                    `<c${subnode.index}>${this.serialize(subnode)}</c${subnode.index}>` :
+                    subnode;
             });
         }
 
@@ -127,19 +188,16 @@ export default class MessageAccumulator {
         // This gets the choices in a standard order so that the resulting string matches
         // what the FormattedCompMessage uses. If the code just relied on serialize() to return
         // the serialized category strings, they would appear in an unspecified order.
-        return ['zero', 'one', 'two', 'few', 'many', 'other']
-            .map(category =>
-                this.pluralCategories[category]
-                    ? ` ${category} {${this.serialize(
-                          this.pluralCategories[category]
-                      )}}`
-                    : ''
-            )
-            .join('');
+        return ['zero', 'one', 'two', 'few', 'many', 'other'].map(
+            category => this.pluralCategories[category] ? ` ${category} {${this.serialize(this.pluralCategories[category])}}` : ''
+        ).join('');
     }
 
     /**
-     * Return the string accumulated so far, including any components.
+     * Return the message accumulated so far, including any components
+     * as a string that contains "c" + a number to represent those
+     * components.
+     *
      * @return {string} the accumulated string so far
      */
     getString() {
@@ -149,10 +207,12 @@ export default class MessageAccumulator {
     }
 
     /**
-     * Return only the text accumulated so far without any components.
+     * Return the number of characters of text that have been
+     * accumulated so far in this accumulator. Components and
+     * plurals are left out. Only
      * @return {string} the text accumulated so far
      */
-    getText() {
+    getTextLength() {
         return this.text.replace(/\s+/g, '').trim();
     }
 
@@ -162,5 +222,19 @@ export default class MessageAccumulator {
      */
     isRoot() {
         return this.componentIndex === 0;
+    }
+
+    /**
+     * Return the mapping between components and the "extra"
+     * information used when creating those components.
+     *
+     * @param {number} componentNumber the number of the
+     * component for which the "extra" information is
+     * being sought
+     * @returns {Object} the "extra" information that was
+     * given when the component was created
+     */
+    getExtra(componentNumber) {
+
     }
 }
