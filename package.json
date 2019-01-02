@@ -16,7 +16,7 @@
         "format",
         "locale",
         "translation",
-		"ilib"
+        "ilib"
     ],
     "homepage": "https://github.com/iLib-js/message-accumulator",
     "bugs": "https://github.com/iLib-js/message-accumulator/issues",
@@ -47,8 +47,7 @@
         "dist": "npm run build ; npm pack",
         "test": "npm run build ; node test/testSuite.js"
     },
-    "dependencies": {
-    },
+    "dependencies": {},
     "devDependencies": {
         "acorn": "^6.0.2",
         "acorn-jsx": "^5.0.0",

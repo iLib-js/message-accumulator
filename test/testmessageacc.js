@@ -1,5 +1,5 @@
 /*
- * testscriptinfoasync.js - test the script info object
+ * testmessageacc.js - test the message accumulator object
  *
  * Copyright © 2018, JEDLSoft
  *
@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import ScriptInfo from "../lib/ScriptInfo.js";
+import MessageAccumulator from "../message-accumulator.js";
 
 module.exports.testscriptinfopromise = {
     testMessageAccumulatorConstructor: function(test) {
