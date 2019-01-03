@@ -663,5 +663,56 @@ module.exports.testAccumulator = {
         test.equal(ma.getTextLength(), 0);
 
         test.done();
-    }
+    },
+
+    testMessageAccumulatorCreateWithSource: function(test) {
+        test.expect(7);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+
+        // The translation has the components swapped from the English
+        let ma = MessageAccumulator.create("Einen großen <c1>Tritt</c1> in Richtung Tor geben Sie am <c0>Ball</c0> hin.", source);
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 5);
+
+        test.contains(ma.root, {
+            children: [
+                "Einen großen ",
+                {
+                    children: [
+                        "Tritt"
+                    ],
+                    index: 1
+                },
+                " in Richtung Tor geben Sie am ",
+                {
+                    children: [
+                        "Ball"
+                    ],
+                    index: 0
+                },
+                " hin."
+            ]
+        });
+
+        // now check the extra information is attached in the right place
+        test.deepEqual(ma.root.children[1].extra, {name: "i"});
+        test.deepEqual(ma.root.children[3].extra, {name: "b"});
+
+        test.done();
+    },
+
 };
