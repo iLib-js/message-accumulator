@@ -36,6 +36,7 @@
     "files": [
         "message-accumulator.js",
         "message-accumulator-es5.js",
+        "message-accumulator-es5.js.map",
         "README.md",
         "LICENSE"
     ],
