@@ -425,4 +425,87 @@ module.exports.testscriptinfopromise = {
         test.done();
     },
 
+    testMessageAccumulatorGetExtra: function(test) {
+        test.expect(5);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.pushComponent(86);
+        ma.addText("This is ");
+        ma.pushComponent(5);
+        ma.addText("a test");
+        ma.addText(" of the ");
+        ma.pushComponent(4);
+        ma.addText("emergency message system");
+        ma.popComponentOrPlural();
+        ma.addText(".");
+        ma.popComponentOrPlural();
+        ma.popComponentOrPlural();
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getExtra(0), 86);
+        test.equal(ma.getExtra(1), 5);
+        test.equal(ma.getExtra(2), 4);
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetExtraObjects: function(test) {
+        test.expect(5);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.pushComponent({foo: "bar"});
+        ma.addText("This is ");
+        ma.pushComponent({type: "component"});
+        ma.addText("a test");
+        ma.addText(" of the ");
+        ma.pushComponent({name: "a"});
+        ma.addText("emergency message system");
+        ma.popComponentOrPlural();
+        ma.addText(".");
+        ma.popComponentOrPlural();
+        ma.popComponentOrPlural();
+
+        test.ok(ma.root.children);
+
+        test.deepEqual(ma.getExtra(0), {foo: "bar"});
+        test.deepEqual(ma.getExtra(1), {type: "component"});
+        test.deepEqual(ma.getExtra(2), {name: "a"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetMapping: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.pushComponent({foo: "bar"});
+        ma.addText("This is ");
+        ma.pushComponent({type: "component"});
+        ma.addText("a test");
+        ma.addText(" of the ");
+        ma.pushComponent({name: "a"});
+        ma.addText("emergency message system");
+        ma.popComponentOrPlural();
+        ma.addText(".");
+        ma.popComponentOrPlural();
+        ma.popComponentOrPlural();
+
+        test.ok(ma.root.children);
+
+        test.deepEqual(ma.getMapping(), {
+            "c0": {foo: "bar"},
+            "c1": {type: "component"},
+            "c2": {name: "a"}
+        });
+
+        test.done();
+    },
+
 };

@@ -41,6 +41,7 @@ export default class MessageAccumulator {
         if (type === 'plural') {
             this.pluralCategories = {};
         }
+        this.mapping = {};
     }
 
     /**
@@ -149,6 +150,7 @@ export default class MessageAccumulator {
         };
         this.currentLevel.children.push(newNode);
         this.currentLevel = newNode;
+        this.mapping["c" + newNode.index] = extra;
     }
 
     /**
@@ -238,9 +240,9 @@ export default class MessageAccumulator {
      * given when the component was created
      */
     getExtra(componentNumber) {
-
+        return this.mapping["c" + componentNumber];
     }
-    
+
     /**
      * Return the mappings between component names and
      * their "extra" information they represent.
@@ -248,6 +250,6 @@ export default class MessageAccumulator {
      * component names and their "extra" information.
      */
     getMapping() {
-        
+        return this.mapping;
     }
 }
