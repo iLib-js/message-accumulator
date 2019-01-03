@@ -242,10 +242,10 @@ export default class MessageAccumulator {
     }
     
     /**
-     * Return the mapping between component names and
-     * the component they represent.
+     * Return the mappings between component names and
+     * their "extra" information they represent.
      * @returns {Object} the mapping between the
-     * component names and the components they represent.
+     * component names and their "extra" information.
      */
     getMapping() {
         
