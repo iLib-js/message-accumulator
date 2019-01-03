@@ -25,11 +25,8 @@
 export default class MessageAccumulator {
     /**
      * Create a new accumulator instance.
-     * @param {string} type the type of instance to create. Valid values
-     * are "plural" for components that contain a set of plural category strings,
-     * and "string" for a single string message.
      */
-    constructor(type) {
+    constructor() {
         this.root = {
             children: [],
             parent: null,
@@ -38,9 +35,6 @@ export default class MessageAccumulator {
         this.currentLevel = this.root;
         this.componentIndex = 0;
         this.text = '';
-        if (type === 'plural') {
-            this.pluralCategories = {};
-        }
         this.mapping = {};
     }
 
@@ -83,11 +77,10 @@ export default class MessageAccumulator {
                 const len = match[0].length;
                 // strip off the outer tags before processing the stuff in the middle
                 const substr = parts[i].substring(len, parts[i].length - len - 1);
-                const component = (mapping && mapping['c' + index]) || {
+                const component = (mapping && mapping[`c${index}`]) || {
                     children: [],
                     parent: this.currentLevel,
-                    index: index,
-                    type: 'component'
+                    index: index
                 };
                 this.currentLevel = component;
                 component.children = this._parse(substr, mapping);
@@ -115,42 +108,22 @@ export default class MessageAccumulator {
     }
 
     /**
-     * Add a plural choice context to the current string.
-     * @param {string} category the category of the plural
-     * @param {Object} extra extra information that the caller would
-     * like to associate with the plural. For example, this may
-     * be a node in an AST from parsing the original text.
-     */
-    pushPlural(category, extra) {
-        const newNode = {
-            children: [],
-            parent: this.currentLevel,
-            type: 'plural',
-            category
-        };
-        this.currentLevel.children.push(newNode);
-        this.currentLevel = newNode;
-        this.pluralCategories[category] = newNode;
-    }
-
-    /**
      * Create a new subcontext for a component such that all text
      * added to the accumulator goes into the new context.
      * @param {Object} extra extra information that the caller would
      * like to associate with the component. For example, this may
      * be a node in an AST from parsing the original text.
      */
-    pushComponent(extra) {
+    push(extra) {
         const newNode = {
             children: [],
             parent: this.currentLevel,
             index: this.componentIndex++,
-            type: 'component',
             extra
         };
         this.currentLevel.children.push(newNode);
         this.currentLevel = newNode;
-        this.mapping["c" + newNode.index] = extra;
+        this.mapping[`c${newNode.index}`] = extra;
     }
 
     /**
@@ -158,7 +131,7 @@ export default class MessageAccumulator {
      * context. If the current context is already the root, then this
      * represents an unbalanced string.
      */
-    popComponentOrPlural() {
+    pop() {
         if (!this.currentLevel.parent) {
             // oh oh, unbalanced?
             console.log('Unbalanced component error...'); // eslint-disable-line no-console
@@ -187,18 +160,6 @@ export default class MessageAccumulator {
     }
 
     /**
-     * @private
-     */
-    getChoices() {
-        // This gets the choices in a standard order so that the resulting string matches
-        // what the FormattedCompMessage uses. If the code just relied on serialize() to return
-        // the serialized category strings, they would appear in an unspecified order.
-        return ['zero', 'one', 'two', 'few', 'many', 'other'].map(
-            category => this.pluralCategories[category] ? ` ${category} {${this.serialize(this.pluralCategories[category])}}` : ''
-        ).join('');
-    }
-
-    /**
      * Return the message accumulated so far, including any components
      * as a string that contains "c" + a number to represent those
      * components.
@@ -206,19 +167,17 @@ export default class MessageAccumulator {
      * @return {string} the accumulated string so far
      */
     getString() {
-        return this.pluralCategories
-            ? `{count, plural,${this.getChoices()}}`
-            : this.serialize(this.root).trim();
+        return this.serialize(this.root).trim();
     }
 
     /**
-     * Return the number of characters of text that have been
-     * accumulated so far in this accumulator. Components and
-     * plurals are left out. Only
-     * @return {string} the text accumulated so far
+     * Return the number of characters of non-whitespace text that
+     * have been accumulated so far in this accumulator. Components
+     * are left out.
+     * @return {number} the length of the non-whispace text accumulated so far
      */
     getTextLength() {
-        return this.text.replace(/\s+/g, '').trim();
+        return this.text.replace(/\s+/g, '').trim().length;
     }
 
     /**
@@ -240,7 +199,7 @@ export default class MessageAccumulator {
      * given when the component was created
      */
     getExtra(componentNumber) {
-        return this.mapping["c" + componentNumber];
+        return this.mapping[`c${componentNumber}`];
     }
 
     /**

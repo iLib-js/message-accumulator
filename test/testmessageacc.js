@@ -19,7 +19,7 @@
 
 import MessageAccumulator from "../message-accumulator.js";
 
-module.exports.testscriptinfopromise = {
+module.exports.testAccumulator = {
     testMessageAccumulatorFactory: function(test) {
         test.expect(2);
 
@@ -228,13 +228,13 @@ module.exports.testscriptinfopromise = {
         test.done();
     },
 
-    testMessageAccumulatorBuildPushComponentRightNumberOfChildren: function(test) {
+    testMessageAccumulatorBuildPushRightNumberOfChildren: function(test) {
         test.expect(3);
 
         let ma = new MessageAccumulator();
         test.ok(ma);
 
-        ma.pushComponent();
+        ma.push();
 
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 1);
@@ -242,13 +242,13 @@ module.exports.testscriptinfopromise = {
         test.done();
     },
 
-    testMessageAccumulatorBuildPushComponentRightChildren: function(test) {
+    testMessageAccumulatorBuildPushRightChildren: function(test) {
         test.expect(4);
 
         let ma = new MessageAccumulator();
         test.ok(ma);
 
-        ma.pushComponent(5);
+        ma.push(5);
 
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 1);
@@ -257,14 +257,14 @@ module.exports.testscriptinfopromise = {
         test.done();
     },
 
-    testMessageAccumulatorBuildPushComponentAmongstOthers: function(test) {
+    testMessageAccumulatorBuildPushAmongstOthers: function(test) {
         test.expect(5);
 
         let ma = new MessageAccumulator();
         test.ok(ma);
 
         ma.addText("This is ");
-        ma.pushComponent(5);
+        ma.push(5);
 
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 2);
@@ -274,14 +274,14 @@ module.exports.testscriptinfopromise = {
         test.done();
     },
 
-    testMessageAccumulatorBuildPushComponentAmongstOthersWithContent: function(test) {
+    testMessageAccumulatorBuildPushAmongstOthersWithContent: function(test) {
         test.expect(3);
 
         let ma = new MessageAccumulator();
         test.ok(ma);
 
         ma.addText("This is ");
-        ma.pushComponent(5);
+        ma.push(5);
         ma.addText("a test");
 
         test.ok(ma.root.children);
@@ -296,6 +296,39 @@ module.exports.testscriptinfopromise = {
                 extra: 5
             }
         ]);
+
+        test.done();
+    },
+
+    testMessageAccumulatorBuildPopNormal: function(test) {
+        test.expect(4);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.push(5);
+        ma.addText("foo");
+        ma.pop();
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 1);
+        test.equal(ma.root.children[0].children.length, 1);
+
+        test.done();
+    },
+
+    testMessageAccumulatorBuildPopOnRoot: function(test) {
+        test.expect(4);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("foo");
+        ma.pop(); // should have no effect
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 1);
+        test.equal(ma.root.children[0], "foo");
 
         test.done();
     },
@@ -331,7 +364,7 @@ module.exports.testscriptinfopromise = {
         test.ok(ma);
 
         ma.addText("This is ");
-        ma.pushComponent(5);
+        ma.push(5);
         ma.addText("a test");
 
         test.ok(ma.root.children);
@@ -348,13 +381,13 @@ module.exports.testscriptinfopromise = {
         test.ok(ma);
 
         ma.addText("This is ");
-        ma.pushComponent(5);
+        ma.push(5);
         ma.addText("a test");
-        ma.popComponentOrPlural();
+        ma.pop();
         ma.addText(" of the ");
-        ma.pushComponent(4);
+        ma.push(4);
         ma.addText("emergency message system");
-        ma.popComponentOrPlural();
+        ma.pop();
         ma.addText(".");
 
         test.ok(ma.root.children);
@@ -371,14 +404,14 @@ module.exports.testscriptinfopromise = {
         test.ok(ma);
 
         ma.addText("This is ");
-        ma.pushComponent(5);
+        ma.push(5);
         ma.addText("a test");
         ma.addText(" of the ");
-        ma.pushComponent(4);
+        ma.push(4);
         ma.addText("emergency message system");
-        ma.popComponentOrPlural();
+        ma.pop();
         ma.addText(".");
-        ma.popComponentOrPlural();
+        ma.pop();
 
         test.ok(ma.root.children);
 
@@ -393,17 +426,40 @@ module.exports.testscriptinfopromise = {
         let ma = new MessageAccumulator();
         test.ok(ma);
 
-        ma.pushComponent();
+        ma.push();
         ma.addText("This is ");
-        ma.pushComponent(5);
+        ma.push(5);
         ma.addText("a test");
         ma.addText(" of the ");
-        ma.pushComponent(4);
+        ma.push(4);
         ma.addText("emergency message system");
-        ma.popComponentOrPlural();
+        ma.pop();
         ma.addText(".");
-        ma.popComponentOrPlural();
-        ma.popComponentOrPlural();
+        ma.pop();
+        ma.pop();
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getString(), "<c0>This is <c1>a test of the <c2>emergency message system</c2>.</c1></c0>");
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetStringWithNoPop: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.push();
+        ma.addText("This is ");
+        ma.push(5);
+        ma.addText("a test");
+        ma.addText(" of the ");
+        ma.push(4);
+        ma.addText("emergency message system");
+        ma.pop();
+        ma.addText(".");
 
         test.ok(ma.root.children);
 
@@ -431,17 +487,17 @@ module.exports.testscriptinfopromise = {
         let ma = new MessageAccumulator();
         test.ok(ma);
 
-        ma.pushComponent(86);
+        ma.push(86);
         ma.addText("This is ");
-        ma.pushComponent(5);
+        ma.push(5);
         ma.addText("a test");
         ma.addText(" of the ");
-        ma.pushComponent(4);
+        ma.push(4);
         ma.addText("emergency message system");
-        ma.popComponentOrPlural();
+        ma.pop();
         ma.addText(".");
-        ma.popComponentOrPlural();
-        ma.popComponentOrPlural();
+        ma.pop();
+        ma.pop();
 
         test.ok(ma.root.children);
 
@@ -458,17 +514,17 @@ module.exports.testscriptinfopromise = {
         let ma = new MessageAccumulator();
         test.ok(ma);
 
-        ma.pushComponent({foo: "bar"});
+        ma.push({foo: "bar"});
         ma.addText("This is ");
-        ma.pushComponent({type: "component"});
+        ma.push({type: "component"});
         ma.addText("a test");
         ma.addText(" of the ");
-        ma.pushComponent({name: "a"});
+        ma.push({name: "a"});
         ma.addText("emergency message system");
-        ma.popComponentOrPlural();
+        ma.pop();
         ma.addText(".");
-        ma.popComponentOrPlural();
-        ma.popComponentOrPlural();
+        ma.pop();
+        ma.pop();
 
         test.ok(ma.root.children);
 
@@ -485,17 +541,17 @@ module.exports.testscriptinfopromise = {
         let ma = new MessageAccumulator();
         test.ok(ma);
 
-        ma.pushComponent({foo: "bar"});
+        ma.push({foo: "bar"});
         ma.addText("This is ");
-        ma.pushComponent({type: "component"});
+        ma.push({type: "component"});
         ma.addText("a test");
         ma.addText(" of the ");
-        ma.pushComponent({name: "a"});
+        ma.push({name: "a"});
         ma.addText("emergency message system");
-        ma.popComponentOrPlural();
+        ma.pop();
         ma.addText(".");
-        ma.popComponentOrPlural();
-        ma.popComponentOrPlural();
+        ma.pop();
+        ma.pop();
 
         test.ok(ma.root.children);
 
@@ -508,4 +564,104 @@ module.exports.testscriptinfopromise = {
         test.done();
     },
 
+    testMessageAccumulatorIsRootTrue: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("This is ");
+
+        test.ok(ma.root.children);
+
+        test.ok(ma.isRoot());
+
+        test.done();
+    },
+
+    testMessageAccumulatorIsRootFalse: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("This is ");
+        ma.push({foo: "bar"});
+
+        test.ok(ma.root.children);
+
+        test.ok(!ma.isRoot());
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetTextLength: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("This is ");
+        ma.push({type: "component"});
+        ma.addText("a test.");
+        ma.pop();
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getTextLength(), 12);
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetTextLengthAllInsideAComponent: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.push({foo: "bar"});
+        ma.addText("test");
+        ma.pop();
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getTextLength(), 4);
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetTextLengthZero: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.push({type: "component"});
+        ma.pop();
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getTextLength(), 0);
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetTextLengthIgnoreWhiteSpace: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("\t\t");
+        ma.push({foo: "bar"});
+        ma.addText("\n    \n\t\t\    \n");
+        ma.pop();
+        ma.addText("  ");
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getTextLength(), 0);
+
+        test.done();
+    }
 };
