@@ -58,7 +58,10 @@ export default class MessageAccumulator {
      */
     static create(str, source) {
         let ma = new MessageAccumulator();
-        ma.root.children = ma._parse(str, (ma && ma.getMapping()) || {});
+        if (str) {
+            ma.root.children = ma._parse(str, (ma && ma.getMapping()) || {});
+        }
+        return ma;
     }
 
     /**
@@ -79,7 +82,7 @@ export default class MessageAccumulator {
                 const len = match[0].length;
                 // strip off the outer tags before processing the stuff in the middle
                 const substr = parts[i].substring(len, parts[i].length - len - 1);
-                const component = (mapping && mapping[name]) || {
+                const component = (mapping && mapping['c' + index]) || {
                     children: [],
                     parent: this.currentLevel,
                     index: index,
@@ -96,7 +99,7 @@ export default class MessageAccumulator {
             }
         }
 
-        return children.length === 0  ? null : (children.length === 1 ? children[0] : children);
+        return children.length === 0  ? null : children;
     }
 
     /**
@@ -236,5 +239,15 @@ export default class MessageAccumulator {
      */
     getExtra(componentNumber) {
 
+    }
+    
+    /**
+     * Return the mapping between component names and
+     * the component they represent.
+     * @returns {Object} the mapping between the
+     * component names and the components they represent.
+     */
+    getMapping() {
+        
     }
 }

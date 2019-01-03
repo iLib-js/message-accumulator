@@ -20,10 +20,10 @@
 import MessageAccumulator from "../message-accumulator.js";
 
 module.exports.testscriptinfopromise = {
-    testMessageAccumulatorConstructor: function(test) {
+    testMessageAccumulatorFactory: function(test) {
         test.expect(2);
         
-        let ma = new MessageAccumulator();
+        let ma = MessageAccumulator.create();
         test.ok(ma);
         test.equal(ma.root.children.length, 0);
 
@@ -34,15 +34,15 @@ module.exports.testscriptinfopromise = {
     testMessageAccumulatorFromString: function(test) {
         test.expect(4);
         
-        let ma = new MessageAccumulator("This is a test of the decomoposition system.");
+        let ma = MessageAccumulator.create("This is a test of the decomposition system.");
         test.ok(ma);
         
         test.ok(ma.root.children);
-        test.equal(ma.root.children.length, 3);
+        test.equal(ma.root.children.length, 1);
         
         test.contains(ma.root, {
             children: [
-                "This is a test of the decomposistion system."
+                "This is a test of the decomposition system."
             ]
         });
         
@@ -52,7 +52,7 @@ module.exports.testscriptinfopromise = {
     testMessageAccumulatorFromStringWithComponent: function(test) {
         test.expect(4);
         
-        let ma = new MessageAccumulator("This is a <c0>test</c0> of the decomoposition system.");
+        let ma = MessageAccumulator.create("This is a <c0>test</c0> of the decomposition system.");
         test.ok(ma);
         
         test.ok(ma.root.children);
@@ -67,21 +67,43 @@ module.exports.testscriptinfopromise = {
                     ],
                     index: 0
                 },
-                " of the decomposistion system."
+                " of the decomposition system."
             ]
         });
         
         test.done();
     },
 
-    testMessageAccumulatorFromStringWith2Components: function(test) {
+    testMessageAccumulatorFromStringWithEmptyComponent: function(test) {
         test.expect(4);
         
-        let ma = new MessageAccumulator("This is a <c0>test</c0> of the <c1>decomoposition</c1> system.");
+        let ma = MessageAccumulator.create("<c0></c0>");
         test.ok(ma);
         
         test.ok(ma.root.children);
-        test.equal(ma.root.children.length, 3);
+        test.equal(ma.root.children.length, 1);
+        
+        test.contains(ma.root, {
+            children: [
+                {
+                    index: 0
+                }
+            ],
+            
+        });
+        
+        test.done();
+    },
+
+    
+    testMessageAccumulatorFromStringWith2Components: function(test) {
+        test.expect(4);
+        
+        let ma = MessageAccumulator.create("This is a <c0>test</c0> of the <c1>decomposition</c1> system.");
+        test.ok(ma);
+        
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 5);
         
         test.contains(ma.root, {
             children: [
@@ -99,7 +121,7 @@ module.exports.testscriptinfopromise = {
                     ],
                     index: 1
                 },
-                "system."
+                " system."
             ]
         });
         
@@ -109,7 +131,7 @@ module.exports.testscriptinfopromise = {
     testMessageAccumulatorFromStringWith2NestedComponents: function(test) {
         test.expect(4);
         
-        let ma = new MessageAccumulator("This is a <c0>test of the <c1>decomoposition</c1> system</c0>.");
+        let ma = MessageAccumulator.create("This is a <c0>test of the <c1>decomposition</c1> system</c0>.");
         test.ok(ma);
         
         test.ok(ma.root.children);
@@ -138,41 +160,10 @@ module.exports.testscriptinfopromise = {
         test.done();
     },
 
-    testMessageAccumulatorFromStringWith2NestedUnclosedComponents: function(test) {
-        test.expect(4);
-        
-        let ma = new MessageAccumulator("This is a <c0>test of the <c1>decomoposition system</c0>.");
-        test.ok(ma);
-        
-        test.ok(ma.root.children);
-        test.equal(ma.root.children.length, 3);
-        
-        test.contains(ma.root, {
-            children: [
-                "This is a ",
-                {
-                    children: [
-                        "test of the ",
-                        {
-                            children: [
-                                "decomposition system"
-                            ],
-                            index: 1
-                        }
-                    ],
-                    index: 0
-                },
-                "."
-            ]
-        });
-        
-        test.done();
-    },
-
     testMessageAccumulatorFromEmptyString: function(test) {
-        test.expect(4);
+        test.expect(3);
         
-        let ma = new MessageAccumulator("");
+        let ma = MessageAccumulator.create("");
         test.ok(ma);
         
         test.ok(ma.root.children);
@@ -229,10 +220,10 @@ module.exports.testscriptinfopromise = {
         let ma = new MessageAccumulator();
         test.ok(ma);
         
-        ma.addText();
+        ma.addText("");
         
         test.ok(ma.root.children);
-        test.equal(ma.root.children.length, 0);
+        test.equal(ma.root.children.length, 1);
         
         test.done();
     },
@@ -284,7 +275,7 @@ module.exports.testscriptinfopromise = {
     },
 
     testMessageAccumulatorBuildPushComponentAmongstOthersWithContent: function(test) {
-        test.expect(5);
+        test.expect(3);
         
         let ma = new MessageAccumulator();
         test.ok(ma);
@@ -308,5 +299,4 @@ module.exports.testscriptinfopromise = {
 
         test.done();
     },
-
 };
