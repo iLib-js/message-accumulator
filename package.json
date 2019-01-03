@@ -1,7 +1,7 @@
 {
     "name": "message-accumulator",
     "version": "1.0.0",
-    "main": "./message-accumulator.js",
+    "main": "./message-accumulator-es5.js",
     "main-es6": "./message-accumulator.js",
     "description": "A package to accumulate localizable snippets of HTML or JSX text and to compose and decompose them to/from localizable strings",
     "keywords": [
@@ -16,7 +16,7 @@
         "format",
         "locale",
         "translation",
-		"ilib"
+        "ilib"
     ],
     "homepage": "https://github.com/iLib-js/message-accumulator",
     "bugs": "https://github.com/iLib-js/message-accumulator/issues",
@@ -35,6 +35,7 @@
     ],
     "files": [
         "message-accumulator.js",
+        "message-accumulator-es5.js",
         "README.md",
         "LICENSE"
     ],
@@ -45,10 +46,10 @@
     "scripts": {
         "build": "grunt babel",
         "dist": "npm run build ; npm pack",
-        "test": "npm run build ; node test/testSuite.js"
+        "test": "npm run build ; node test/testSuite.js",
+        "debug": "npm run build ; node --inspect-brk test/testSuite.js"
     },
-    "dependencies": {
-    },
+    "dependencies": {},
     "devDependencies": {
         "acorn": "^6.0.2",
         "acorn-jsx": "^5.0.0",

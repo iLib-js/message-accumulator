@@ -31,6 +31,73 @@ function fail(actual, expected, message, operator, stackStartFunction) {
     });
 }
 
+/**
+ * Added for browser compatibility
+ */
+
+var _keys = function(obj){
+    if(Object.keys) return Object.keys(obj);
+    if (typeof obj != 'object' && typeof obj != 'function') {
+        throw new TypeError('-');
+    }
+    var keys = [];
+    for(var k in obj){
+        if(obj.hasOwnProperty(k)) keys.push(k);
+    }
+    return keys;
+};
+
+function isUndefinedOrNull (value) {
+    return value === null || value === undefined;
+}
+
+function isArguments (object) {
+    return Object.prototype.toString.call(object) == '[object Arguments]';
+}
+
+function objEquiv (a, b) {
+    if (isUndefinedOrNull(a) || isUndefinedOrNull(b))
+        return false;
+    // an identical "prototype" property.
+    if (a.prototype !== b.prototype) return false;
+    //~~~I've managed to break Object.keys through screwy arguments passing.
+    //   Converting to array solves the problem.
+    if (isArguments(a)) {
+        if (!isArguments(b)) {
+            return false;
+        }
+        a = pSlice.call(a);
+        b = pSlice.call(b);
+        return _deepEqual(a, b);
+    }
+    try{
+        var ka = _keys(a),
+        kb = _keys(b),
+        key, i;
+    } catch (e) {//happens when one is a string literal and the other isn't
+        return false;
+    }
+    // having the same number of owned properties (keys incorporates hasOwnProperty)
+    if (ka.length != kb.length)
+        return false;
+    //the same set of keys (although not necessarily the same order),
+    ka.sort();
+    kb.sort();
+    //~~~cheap key test
+    for (i = ka.length - 1; i >= 0; i--) {
+        if (ka[i] != kb[i])
+            return false;
+    }
+    //equivalent values for every corresponding key, and
+    //~~~possibly expensive deep test
+    for (i = ka.length - 1; i >= 0; i--) {
+        key = ka[i];
+        if (!_deepEqual(a[key], b[key] ))
+            return false;
+    }
+    return true;
+}
+
 function _deepEqual(actual, expected) {
     // 7.1. All identical values are equivalent, as determined by ===.
     if (actual === expected)
@@ -166,6 +233,77 @@ assert.roughlyEqual = function(actual, expected, tolerance, message) {
     return;
 };
 
+function contains(actual, expected) {
+    if (isArray(actual)) {
+        if (typeof(expected) === "undefined") {
+            return false;
+        }
+
+        if (typeof(expected) === "object" && !isArray(expected)) {
+            return false;
+        } else if (isArray(expected)) {
+            for (var i = 0; i < expected.length; i++) {
+                if (typeof(expected[i]) === "object") {
+                    var found = false;
+                    for (var j = 0; j < actual.length; j++) {
+                        if (typeof(actual[j]) === "object") {
+                            if (contains(actual[j], expected[i])) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!found) return false;
+                } else {
+                    if (actual.indexOf(expected[i]) < 0) {
+                        return false;
+                    }
+                }
+            }
+        } else {
+            // primitive type -- check to see if it is in the actual array
+            if (actual.indexOf(expected) < 0) {
+                return false;
+            }
+        }
+    } else if (typeof(actual) === "object") {
+        if (typeof(expected) === "object") {
+            for (var p in expected) {
+                if (p && expected.hasOwnProperty(p)) {
+                    if (typeof(actual[p]) === 'undefined') {
+                        // "actual does not contain expected properties";
+                        return false;
+                    } else if (typeof(expected[p]) === 'object') {
+                        if (!contains(actual[p], expected[p])) {
+                            return false;
+                        }
+                    } else {
+                        if (actual[p] != expected[p]) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        } else if (isArray(expected)) {
+            return false;
+        } else if (typeof(expected) === "string") {
+            if (typeof(actual[p]) === "undefined") {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    } else if (typeof(actual) === "string") {
+        if (actual.indexOf(expected) === -1) {
+            return false;
+        }
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
 /**
  * Check the actual result to see that every property that exists in the expected
  * object also exists in the actual object and that it has the same value. If the
@@ -187,58 +325,8 @@ assert.roughlyEqual = function(actual, expected, tolerance, message) {
  * @throws AssertionError
  */
 assert.contains = function(actual, expected, message) {
-    if (isArray(actual)) {
-        if (typeof(expected) === "undefined") {
-            fail("Invalid expected argument to contains.");
-        }
-
-        if (typeof(expected) === "object") {
-            fail(actual, expected, message + " Expected is object and actual is array.", "contains", assert.contains);
-        } else if (isArray(expected)) {
-            for (var i = 0; i < expected.length; i++) {
-                if (actual.indexOf(expected[i]) < 0) {
-                    fail(actual, expected, message + " Actual array does not contain array index " + i + " of expected.", "contains", assert.contains);
-                }
-            }
-        } else {
-            // primitive type -- check to see if it is in the actual array
-            if (actual.indexOf(expected) < 0) {
-                fail(actual, expected, message + " Expected value " + expected + " is not contained in the array in actual.", "contains", assert.contains);
-            }
-        }
-    } else if (typeof(actual) === "object") {
-        if (typeof(expected) === "object") {
-            for (p in expected) {
-                if (p && expected.hasOwnProperty(p)) {
-                    if (typeof(actual[p]) === 'undefined') {
-                        // "actual does not contain expected properties";
-                        fail(actual[p], expected[p], message + " Expected contains property " + p + " and actual does not.", "contains", assert.contains);
-                    } else if (typeof(expected[p]) === 'object') {
-                        if (!_deepEqual(actual[p], expected[p])) {
-                            fail(actual, expected, message, "contains", assert.notDeepEqual);
-                        }
-                    } else {
-                        if (actual[p] != expected[p]) {
-                            fail(actual, expected, message, "contains", assert.notDeepEqual);
-                        }
-                    }
-                }
-            }
-        } else if (isArray(expected)) {
-            fail(actual, expected, message + " Expected is array and actual is object.", "contains", assert.contains);
-        } else if (typeof(expected) === "string") {
-            if (typeof(actual[p]) === "undefined") {
-                fail(actual[p], expected[p], message + " Expected is looking for property " + expected + " and actual does not contain it.", "contains", assert.contains);
-            }
-        } else {
-            fail("Invalid expected argument to contains.");
-        }
-    } else if (typeof(actual) === "string") {
-        if (actual.indexOf(expected) === -1) {
-            fail(actual, expected, message + " Actual stirng " + actual + " is not contained within expected property " + expected);
-        }
-    } else {
-        fail("Invalid expected argument to contains.");
+    if (!contains(actual, expected)) {
+        fail(actual, expected, message + " Actual object is not a superset of the expected object.", "does not contain", assert.contains);
     }
     return;
 };

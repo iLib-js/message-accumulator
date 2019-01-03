@@ -24,15 +24,6 @@ module.exports = function(grunt) {
     // Project configuration.
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        uglify: {
-            options: {
-                banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
-            },
-            build: {
-                src: 'src/*.js',
-                dest: 'lib/'
-            }
-        },
         babel: {
             options: {
                 sourceMap: true,
@@ -41,13 +32,7 @@ module.exports = function(grunt) {
             },
             dist: {
                 files: [{
-                    expand: true,
-                    cwd: 'src',
-                    src: ['*.js'],
-                    dest: 'lib/',
-                    ext: '.js'
-                },{
-                    'ilib.js': 'ilib-es6.js'
+                    'message-accumulator-es5.js': 'message-accumulator.js'
                 }]
             }
         },
@@ -61,5 +46,4 @@ module.exports = function(grunt) {
 
     // Default task(s).
     grunt.registerTask('default', ['babel']);
-    grunt.registerTask('uglify', ['uglify']);
 };
