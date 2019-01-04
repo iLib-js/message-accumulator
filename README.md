@@ -23,12 +23,12 @@ Consider this snippet:
 ```
 
 In this case, the outer "div" and "span" tags are not part of any localizable
-snippet of text. The entire string "There are 
-&lt;a href="http://url" title="localizable title"&gt;50 
-files&lt;/a&gt; in the &lt;span class="copyright"&gt;Simple Markdown&lt;/span&gt; system." 
-should be localized as a single sentence because it would not 
+snippet of text. The entire string "There are
+&lt;a href="http://url" title="localizable title"&gt;50
+files&lt;/a&gt; in the &lt;span class="copyright"&gt;Simple Markdown&lt;/span&gt; system."
+should be localized as a single sentence because it would not
 make any sense to localize the parts "There are ",
-"50 files", " in the ", "Simple Markdown", and " system." separately. 
+"50 files", " in the ", "Simple Markdown", and " system." separately.
 They are not simply phrases that you can
 translate out-of-context, and then re-concatenate and have
 any hope that it will make logical sense in many other languages. Human
@@ -62,26 +62,26 @@ c1 = <span class="copyright">
 In this way, translators can focus on the linguistic part of the translation
 and only have to make sure that the corresponding portion of translation
 is surrounded by the pseudo-tags "c0" and "c1", where "c" stands for
-the word "component". 
+the word "component".
 
 Translating this type of message has many advantages:
- 
-    * The contents of the tags in the mapping below is hidden from the
-      translators, so they cannot mess it up by translating things that should
-      not be translated and by leaving out brackets or quotation characters.
-    * It prevents code injection attacks. A nefarious person working at the translation
-      agency would not be able to insert some malicious javascript code in the 
-      middle of a translation hidden inside of some HTML tags because source string
-      does not contain HTML.
-    * The contents of the tags can change frequently without affecting the
-      content of the source string, and therefore the translation. A designer
-      can add a new CSS class if they desire, and the programmer can change
-      the contents of the href attribute of a link tag without causing a
-      retranslation of the string. The new CSS class and url will be 
-      recomposed into the translated string later.
+
+* The contents of the tags in the mapping below is hidden from the
+  translators, so they cannot mess it up by translating things that should
+  not be translated and by leaving out brackets or quotation characters.
+* It prevents code injection attacks. A nefarious person working at the translation
+  agency would not be able to insert some malicious javascript code in the
+  middle of a translation hidden inside of some HTML tags because source string
+  does not contain HTML.
+* The contents of the tags can change frequently without affecting the
+  content of the source string, and therefore the translation. A designer
+  can add a new CSS class if they desire, and the programmer can change
+  the contents of the href attribute of a link tag without causing a
+  retranslation of the string. The new CSS class and url will be
+  recomposed into the translated string later.
 
 
-Now in many languages, grammar is different than in English, so it is 
+Now in many languages, grammar is different than in English, so it is
 entirely possible that the order of the components is different. Also,
 the nesting of those components may change. We need to allow the translators
 the freedom to do what is right for the grammar of their target language.
@@ -118,7 +118,7 @@ the HTML into translated HTML.
 
 In many cases, the caller of
 this message accumulator class will have an abstract syntax tree (AST) in memory
-which is the result of parsing the original English source file with a 
+which is the result of parsing the original English source file with a
 standard parser. In this case,
 "c0" and "c1" would map to particular nodes in that tree instead of to snippets
 of text containing the HTML tags.
