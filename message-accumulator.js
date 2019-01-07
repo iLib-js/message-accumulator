@@ -54,7 +54,7 @@ export default class MessageAccumulator {
     static create(str, source) {
         let ma = new MessageAccumulator();
         if (str) {
-            ma.root.children = ma._parse(str, (ma && ma.getMapping()) || {});
+            ma.root.children = ma._parse(str, (source && source.getMapping()) || {}, ma.root);
         }
         return ma;
     }
@@ -62,7 +62,7 @@ export default class MessageAccumulator {
     /**
      * @private
      */
-    _parse(string, mapping) {
+    _parse(string, mapping, parent) {
         let match,
             re = /(<(c\d+)>.*<\/\2>)/g,
             first = /^<c(\d+)>/;
@@ -77,13 +77,13 @@ export default class MessageAccumulator {
                 const len = match[0].length;
                 // strip off the outer tags before processing the stuff in the middle
                 const substr = parts[i].substring(len, parts[i].length - len - 1);
-                const component = (mapping && mapping[`c${index}`]) || {
+                const component = {
                     children: [],
-                    parent: this.currentLevel,
-                    index: index
+                    parent,
+                    index,
+                    extra: mapping && mapping[`c${index}`]
                 };
-                this.currentLevel = component;
-                component.children = this._parse(substr, mapping);
+                component.children = this._parse(substr, mapping, component);
 
                 children.push(component);
                 i++; // skip the number in the next iteration
