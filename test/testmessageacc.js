@@ -301,14 +301,14 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorBuildPopNormal: function(test) {
-        test.expect(4);
+        test.expect(5);
 
         let ma = new MessageAccumulator();
         test.ok(ma);
 
         ma.push(5);
         ma.addText("foo");
-        ma.pop();
+        test.equal(ma.pop(), 5);
 
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 1);
@@ -318,17 +318,30 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorBuildPopOnRoot: function(test) {
-        test.expect(4);
+        test.expect(5);
 
         let ma = new MessageAccumulator();
         test.ok(ma);
 
         ma.addText("foo");
-        ma.pop(); // should have no effect
+        test.ok(!ma.pop()); // should have no effect
 
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 1);
         test.equal(ma.root.children[0], "foo");
+
+        test.done();
+    },
+
+    testMessageAccumulatorBuildPopReturnExtra: function(test) {
+        test.expect(2);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.push({name: "a", value: true});
+        ma.addText("foo");
+        test.deepEqual(ma.pop(), {name: "a", value: true});
 
         test.done();
     },
@@ -711,6 +724,101 @@ module.exports.testAccumulator = {
         // now check the extra information is attached in the right place
         test.deepEqual(ma.root.children[1].extra, {name: "i"});
         test.deepEqual(ma.root.children[3].extra, {name: "b"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetCurrentLevelEmpty: function(test) {
+        test.expect(2);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        test.equal(ma.getCurrentLevel(), 0);
+        test.done();
+    },
+
+    testMessageAccumulatorGetCurrentLevelNoContext: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        test.equal(ma.getCurrentLevel(), 0);
+        // does not push a new context
+        ma.addText("You give ");
+
+        test.equal(ma.getCurrentLevel(), 0);
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetCurrentLevel: function(test) {
+        test.expect(6);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        test.equal(ma.getCurrentLevel(), 0);
+
+        ma.addText("You give ");
+
+        test.equal(ma.getCurrentLevel(), 0);
+
+        ma.push({name: "b"});
+
+        test.equal(ma.getCurrentLevel(), 1);
+
+        ma.addText("the ball");
+
+        test.equal(ma.getCurrentLevel(), 1);
+
+        ma.pop();
+
+        test.equal(ma.getCurrentLevel(), 0);
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetCurrentLevelDeep: function(test) {
+        test.expect(10);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        test.equal(ma.getCurrentLevel(), 0);
+
+        ma.addText("You give ");
+
+        test.equal(ma.getCurrentLevel(), 0);
+
+        ma.push({name: "a"});
+
+        test.equal(ma.getCurrentLevel(), 1);
+
+        ma.push({name: "b"});
+
+        test.equal(ma.getCurrentLevel(), 2);
+
+        ma.push({name: "c"});
+
+        test.equal(ma.getCurrentLevel(), 3);
+
+        ma.addText("the ball");
+
+        test.equal(ma.getCurrentLevel(), 3);
+
+        ma.pop();
+
+        test.equal(ma.getCurrentLevel(), 2);
+
+        ma.pop();
+
+        test.equal(ma.getCurrentLevel(), 1);
+
+        ma.pop();
+
+        test.equal(ma.getCurrentLevel(), 0);
 
         test.done();
     },

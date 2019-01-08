@@ -8,7 +8,7 @@ programs can easily use to recompose localized messages in the
 original syntax.
 
 In HTML or JSX, for example, whole translatable messages are hard to identify.
-In HTML for example, some tags are commonly found inside of whole
+In HTML, some tags are commonly found inside of whole
 sentences, and some are not. What forms a whole translatable
 message?
 
@@ -37,16 +37,21 @@ a good job, they need the entire sentence.
 
 The only problem is that translators
 are not so good with programming language syntax and tend to do things
-like translate HTML tag name and attribute values such as the names of
-CSS classes. Things are worse in JSX where components can have any name
+like occasionally translating HTML tag names or attribute values. For example,
+they may see a series of CSS class names that forms a short phrase in English,
+and decide that they should be translated. The situation is even worse in
+JSX because the names of tags are not a fixed list like HTML.
+Components can have any name
 and even translators who are familiar with HTML tags are confused as to
 what is translatable and what is not. In our example above, we even have
-the added complication
+another added complication
 that the value of the "title" attribute of the "a" tag is actual
-localizable text, which is even more confusing to the translators.
+localizable text but the value of the other attributes are not, which
+is even more confusing to the translators. Again, they are not programmers.
 
-In order to avoid this whole mess, we need to hide the contents of such tags
-from the translators and let them translate with minimal syntax
+But that is okay. They are amazing linguists, and this library helps to hide
+these complications from them. This library hides the contents of such tags
+from the translators and lets them translate with minimal syntax
 getting in the way. The sentence above would be easier for translators
 to translate if it were something like this:
 
@@ -59,14 +64,16 @@ c0 = <a href="http://url" title="localizable title">
 c1 = <span class="copyright">
 ```
 
-In this way, translators can focus on the linguistic part of the translation
+Translators can learn this simple XML syntax quickly, and don't need to know the
+intracacies of any programming or markup language. They
+can focus on the linguistic part of the translation
 and only have to make sure that the corresponding portion of translation
-is surrounded by the pseudo-tags "c0" and "c1", where "c" stands for
-the word "component".
+is surrounded by the XML-tags "c0" and "c1". (The "c" stands for
+the word "component" -- XML tags have to start with a letter.)
 
 Translating this type of message has many advantages:
 
-* The contents of the tags in the mapping below is hidden from the
+* The contents of the tags is hidden from the
   translators, so they cannot mess it up by translating things that should
   not be translated and by leaving out brackets or quotation characters.
 * It prevents code injection attacks. A nefarious person working at the translation
@@ -76,13 +83,13 @@ Translating this type of message has many advantages:
 * The contents of the tags can change frequently without affecting the
   content of the source string, and therefore the translation. A designer
   can add a new CSS class if they desire, and the programmer can change
-  the contents of the href attribute of a link tag without causing a
+  the href attribute of a link tag without causing a
   retranslation of the string. The new CSS class and url will be
   recomposed into the translated string later.
 
-
-Now in many languages, grammar is different than in English, so it is
-entirely possible that the order of the components is different. Also,
+Now in many human languages, grammar is different than in English, so it is
+entirely possible that the order of the components turns out different for
+a translated string than in English. Also,
 the nesting of those components may change. We need to allow the translators
 the freedom to do what is right for the grammar of their target language.
 That means we need to be able to decompose a translated string back
@@ -98,8 +105,8 @@ Consider this translation of our example above into German:
 In den <c1>Simple Markdown</c1> System, gibt es <c0>50 Dateien</c1>.
 ```
 
-Note that the order of the components is indeed reversed from English.
-Ideally, we would like to decompose this into this tree:
+Note that the order of the components is indeed reversed from English -- c1
+comes before c0. Ideally, we would like to decompose this into this tree:
 
 ```
 root
@@ -113,8 +120,12 @@ root
 ```
 
 From there you can easily reapply the mapping `c1 = <span class="copyright">`
-and `c0 = <a href="http://url" title="localizable title">` to reconstruct
-the HTML into translated HTML.
+and `c0 = <a href="http://url" title="localizable title">`, plus the appropriate
+close tags of course, to reconstruct the HTML into nicely translated HTML:
+
+```
+In den <span class="copyright">Simple Markdown</span> System, gibt es <a href="http://url" title="localizable title">50 Dateien</a >.
+```
 
 In many cases, the caller of
 this message accumulator class will have an abstract syntax tree (AST) in memory
@@ -132,4 +143,56 @@ that can be easily transformed into AST nodes again.
 
 Usage
 -----
+
+## Extracting source strings from your source file
+
+The MessageAccumulator class has three main methods to accumulate a string:
+
+- addText() - Add new text to the current context of the string
+- push() - Start a new context, such as text within an HTML tag
+- pop() - End the current context and return to the previous one
+- getString() - Retrieve the translatable string with the contexts hidden with the "c" XML tags
+
+Step 1. Use your parser to generate an abstract syntax tree (AST) that represents
+the file.
+
+Step 2. Walk the AST, accumulating text as appropriate using addText and pushing
+contexts for any nodes that do not mark a break in the text. For example, if
+your HTML parser has some text followed by the "b" tag, then that "b" tag should
+not cause a break in the text and the accumulation should continue.
+
+Step 3. At some point, the parser will eventually come to a node
+in the AST that marks a break in the translatable message or it will come
+to the end of the file. For example, in HTML, you might encounter a &lt;div&gt;
+tag. When this happens, the current value of the message accumulator is the
+translatable string. The code can retrieve the string using the getString
+method, and you can send this string into your localization process.
+
+## Localizing your source file
+
+At some point, the translations of all the strings extracted using the method
+in the previous section will be done. The localized file can be reconstructed.
+
+You start with the source file and the translated version of the string from
+your localization system. (Resource files? Translation server?)
+
+Step 1. The source file is reparsed and re-walked as above, but this time, you keep
+track of nodes in the AST by pushing them into your contexts. This creates
+a mapping between contexts and the AST nodes that they represent. The push()
+method takes a parameter that is your AST node.
+
+Step 2. As the code walks the nodes and hit some node that causes the end of
+the translatable text, it can then apply the translation. The result of
+getString() gives the translatable source, and the translation of that is
+looked up in the translation system. Then, the code will create a new MessageAccumulator
+from that translated string plus the current MessageAccumulator containing
+the source string. This will apply the mapping from context to AST node 
+appropriately to the translated MessageAccumulator.
+
+Step 3. Walk the new translated MessageAccumulator again, converting the 
+MessageAccumulator nodes into AST nodes. Then, replace the AST nodes with
+these new ones.
+
+Step 4. When all of the text is translated, convert the AST back into text
+again to reconstruct your translated file.
 

@@ -130,13 +130,17 @@ export default class MessageAccumulator {
      * Pop the current context from the stack and return to the previous
      * context. If the current context is already the root, then this
      * represents an unbalanced string.
+     * @returns {Object} the extra information associated with the 
+     * context that is being popped
      */
     pop() {
         if (!this.currentLevel.parent) {
             // oh oh, unbalanced?
             console.log('Unbalanced component error...'); // eslint-disable-line no-console
         }
+        var extra = this.currentLevel.extra;
         this.currentLevel = this.currentLevel.parent;
+        return extra;
     }
 
     /**
@@ -178,6 +182,24 @@ export default class MessageAccumulator {
      */
     getTextLength() {
         return this.text.replace(/\s+/g, '').trim().length;
+    }
+
+    /**
+     * @private
+     * Return the depth of the stack from the given node.
+     */
+    countCurrentLevel(node) {
+        return node.parent ? this.countCurrentLevel(node.parent) + 1 : 0;
+    }
+
+    /**
+     * Return the current depth of the context stack. If the accumulator is
+     * currently at the root, it will return 0.
+     * @returns {number} the current depth of the context stack, or 0 if there
+     * is nothing on the stack yet
+     */
+    getCurrentLevel() {
+        return this.countCurrentLevel(this.currentLevel);
     }
 
     /**
