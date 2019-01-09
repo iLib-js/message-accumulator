@@ -102,7 +102,7 @@ export default class MessageAccumulator {
      */
     addText(text) {
         if (typeof text === 'string') {
-            this.currentLevel.children.push(text.replace(/\s+/g, ' '));
+            this.currentLevel.children.push(text);
         }
         this.text += text;
     }
@@ -130,7 +130,7 @@ export default class MessageAccumulator {
      * Pop the current context from the stack and return to the previous
      * context. If the current context is already the root, then this
      * represents an unbalanced string.
-     * @returns {Object} the extra information associated with the 
+     * @returns {Object} the extra information associated with the
      * context that is being popped
      */
     pop() {

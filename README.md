@@ -144,14 +144,15 @@ that can be easily transformed into AST nodes again.
 Usage
 -----
 
-## Extracting source strings from your source file
+### Extracting source strings from your source file
 
-The MessageAccumulator class has three main methods to accumulate a string:
+The MessageAccumulator class has four main methods to accumulate a string:
 
 - addText() - Add new text to the current context of the string
 - push() - Start a new context, such as text within an HTML tag
 - pop() - End the current context and return to the previous one
-- getString() - Retrieve the translatable string with the contexts hidden with the "c" XML tags
+- getString() - Retrieve the translatable string in this accumulator, where
+  the contexts are hidden with the "c" XML tags
 
 Step 1. Use your parser to generate an abstract syntax tree (AST) that represents
 the file.
@@ -159,25 +160,30 @@ the file.
 Step 2. Walk the AST, accumulating text as appropriate using addText and pushing
 contexts for any nodes that do not mark a break in the text. For example, if
 your HTML parser has some text followed by the "b" tag, then that "b" tag should
-not cause a break in the text and the accumulation should continue.
+not cause a break in the text. The code should push a new context and continue
+to accumulate more text.
 
 Step 3. At some point, the parser will eventually come to a node
-in the AST that marks a break in the translatable message or it will come
-to the end of the file. For example, in HTML, you might encounter a &lt;div&gt;
+in the AST that marks a break in the translatable message. (Or it will come
+to the end of the file!) For example in HTML, you might encounter a &lt;div&gt;
 tag. When this happens, the current value of the message accumulator is the
 translatable string. The code can retrieve the string using the getString
-method, and you can send this string into your localization process.
+method, and this string can be sent into the localization process. Typical
+the code will then create a new MessageAccumulator instance for the next
+piece of text.
 
-## Localizing your source file
+### Localizing your source file
 
-At some point, the translations of all the strings extracted using the method
-in the previous section will be done. The localized file can be reconstructed.
+At some point, the translations of all the strings will be done, and the
+localized file can be reconstructed.
 
-You start with the source file and the translated version of the string from
-your localization system. (Resource files? Translation server?)
+To do this, the code starts with the source file and the set of translations
+from your localization system, in the form of resource files or a translation
+server.
 
 Step 1. The source file is reparsed and re-walked as above, but this time, you keep
-track of nodes in the AST by pushing them into your contexts. This creates
+track of nodes in the AST by pushing them into your contexts. This decorates
+the nodes in the accumulator with the AST nodes. Doing this creates
 a mapping between contexts and the AST nodes that they represent. The push()
 method takes a parameter that is your AST node.
 
@@ -186,10 +192,10 @@ the translatable text, it can then apply the translation. The result of
 getString() gives the translatable source, and the translation of that is
 looked up in the translation system. Then, the code will create a new MessageAccumulator
 from that translated string plus the current MessageAccumulator containing
-the source string. This will apply the mapping from context to AST node 
+the source string. This will apply the mapping from context to AST node
 appropriately to the translated MessageAccumulator.
 
-Step 3. Walk the new translated MessageAccumulator again, converting the 
+Step 3. Walk the new translated MessageAccumulator again, converting the
 MessageAccumulator nodes into AST nodes. Then, replace the AST nodes with
 these new ones.
 

@@ -200,6 +200,24 @@ module.exports.testAccumulator = {
         test.done();
     },
 
+    testMessageAccumulatorBuildAddTextWithWhitespace: function(test) {
+        test.expect(5);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("   This is a test.");
+        ma.addText(" ");
+        ma.addText("\n");
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children[0], "   This is a test.");
+        test.equal(ma.root.children[1], " ");
+        test.equal(ma.root.children[2], "\n");
+
+        test.done();
+    },
+
     testMessageAccumulatorBuildAddUndefined: function(test) {
         test.expect(3);
 
