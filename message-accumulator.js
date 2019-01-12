@@ -178,7 +178,7 @@ export default class MessageAccumulator {
      * Return the number of characters of non-whitespace text that
      * have been accumulated so far in this accumulator. Components
      * are left out.
-     * @return {number} the length of the non-whispace text accumulated so far
+     * @return {number} the length of the non-whitespace text accumulated so far
      */
     getTextLength() {
         return this.text.replace(/\s+/g, '').trim().length;
