@@ -2,7 +2,7 @@
  * message-accumulator.js - accumulate localizable messages
  *
  * @license
- * Copyright © 2018, JEDLSoft
+ * Copyright © 2019, JEDLSoft
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
  * limitations under the License.
  */
 
+import Node from 'ilib-tree-node';
 
 /**
  * MessageAccumulator.js - accumulate a translatable message as a string
@@ -27,11 +28,11 @@ export default class MessageAccumulator {
      * Create a new accumulator instance.
      */
     constructor() {
-        this.root = {
-            children: [],
+        this.root = new Node({
+            type: "root",
             parent: null,
-            index: 0
-        };
+            index: -1
+        });
         this.currentLevel = this.root;
         this.componentIndex = 0;
         this.text = '';
@@ -54,7 +55,7 @@ export default class MessageAccumulator {
     static create(str, source) {
         let ma = new MessageAccumulator();
         if (str) {
-            ma.root.children = ma._parse(str, (source && source.getMapping()) || {}, ma.root);
+            ma._parse(str, (source && source.getMapping()) || {}, ma.root);
         }
         return ma;
     }
@@ -68,7 +69,6 @@ export default class MessageAccumulator {
             first = /^<c(\d+)>/;
 
         const parts = string.split(re);
-        let children = [];
 
         for (var i = 0; i < parts.length; i++) {
             first.lastIndex = 0;
@@ -77,23 +77,23 @@ export default class MessageAccumulator {
                 const len = match[0].length;
                 // strip off the outer tags before processing the stuff in the middle
                 const substr = parts[i].substring(len, parts[i].length - len - 1);
-                const component = {
-                    children: [],
+                const component = new Node({
                     parent,
                     index,
                     extra: mapping && mapping[`c${index}`]
-                };
-                component.children = this._parse(substr, mapping, component);
+                });
+                this._parse(substr, mapping, component);
 
-                children.push(component);
+                parent.add(component);
                 i++; // skip the number in the next iteration
             } else if (parts[i] && parts[i].length) {
                 // don't store empty strings
-                children.push(parts[i]);
+                parent.add(new Node({
+                    type: 'text',
+                    value: parts[i]
+                }));
             }
         }
-
-        return children.length === 0  ? null : children;
     }
 
     /**
@@ -102,7 +102,10 @@ export default class MessageAccumulator {
      */
     addText(text) {
         if (typeof text === 'string') {
-            this.currentLevel.children.push(text);
+            this.currentLevel.add(new Node({
+                type: 'text',
+                value: text
+            }));
         }
         this.text += text;
     }
@@ -115,13 +118,12 @@ export default class MessageAccumulator {
      * be a node in an AST from parsing the original text.
      */
     push(extra) {
-        const newNode = {
-            children: [],
+        const newNode = new Node({
             parent: this.currentLevel,
             index: this.componentIndex++,
             extra
-        };
-        this.currentLevel.children.push(newNode);
+        });
+        this.currentLevel.add(newNode);
         this.currentLevel = newNode;
         this.mapping[`c${newNode.index}`] = extra;
     }
@@ -144,26 +146,6 @@ export default class MessageAccumulator {
     }
 
     /**
-     * @private
-     */
-    serialize(node) {
-        if (typeof node === 'string') {
-            return node;
-        }
-
-        let ret = '';
-        if (node.children) {
-            node.children.forEach(subnode => {
-                ret += typeof subnode === 'object' ?
-                    `<c${subnode.index}>${this.serialize(subnode)}</c${subnode.index}>` :
-                    subnode;
-            });
-        }
-
-        return ret;
-    }
-
-    /**
      * Return the message accumulated so far, including any components
      * as a string that contains "c" + a number to represent those
      * components.
@@ -171,7 +153,15 @@ export default class MessageAccumulator {
      * @return {string} the accumulated string so far
      */
     getString() {
-        return this.serialize(this.root).trim();
+        return this.root.toArray().map(node => {
+            if (node.use === "start" && node.index > -1) {
+                return `<c${node.index}>`;
+            } else if (node.use === "end" && node.index > -1) {
+                return `</c${node.index}>`;
+            } else {
+                return node.value;
+            }
+        }).join('');
     }
 
     /**

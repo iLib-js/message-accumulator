@@ -1,7 +1,7 @@
 /*
  * testmessageacc.js - test the message accumulator object
  *
- * Copyright © 2018, JEDLSoft
+ * Copyright © 2019, JEDLSoft
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,10 @@ module.exports.testAccumulator = {
 
         let ma = MessageAccumulator.create();
         test.ok(ma);
-        test.equal(ma.root.children.length, 0);
+        test.ok(!ma.root.children);
 
         test.done();
     },
-
 
     testMessageAccumulatorFromString: function(test) {
         test.expect(4);
@@ -42,7 +41,7 @@ module.exports.testAccumulator = {
 
         test.contains(ma.root, {
             children: [
-                "This is a test of the decomposition system."
+                {value: "This is a test of the decomposition system."}
             ]
         });
 
@@ -60,14 +59,14 @@ module.exports.testAccumulator = {
 
         test.contains(ma.root, {
             children: [
-                "This is a ",
+                {value: "This is a "},
                 {
                     children: [
-                        "test"
+                        {value: "test"}
                     ],
                     index: 0
                 },
-                " of the decomposition system."
+                {value: " of the decomposition system."}
             ]
         });
 
@@ -107,21 +106,21 @@ module.exports.testAccumulator = {
 
         test.contains(ma.root, {
             children: [
-                "This is a ",
+                {value: "This is a "},
                 {
                     children: [
-                        "test"
+                        {value: "test"}
                     ],
                     index: 0
                 },
-                " of the ",
+                {value: " of the "},
                 {
                     children: [
-                        "decomposition"
+                        {value: "decomposition"}
                     ],
                     index: 1
                 },
-                " system."
+                {value: " system."}
             ]
         });
 
@@ -139,21 +138,21 @@ module.exports.testAccumulator = {
 
         test.contains(ma.root, {
             children: [
-                "This is a ",
+                {value: "This is a "},
                 {
                     children: [
-                        "test of the ",
+                        {value: "test of the "},
                         {
                             children: [
-                                "decomposition"
+                                {value: "decomposition"}
                             ],
                             index: 1
                         },
-                        " system"
+                        {value: " system"}
                     ],
                     index: 0
                 },
-                "."
+                {value: "."}
             ]
         });
 
@@ -161,13 +160,12 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorFromEmptyString: function(test) {
-        test.expect(3);
+        test.expect(2);
 
         let ma = MessageAccumulator.create("");
         test.ok(ma);
 
-        test.ok(ma.root.children);
-        test.equal(ma.root.children.length, 0);
+        test.ok(!ma.root.children);
 
         test.done();
     },
@@ -195,7 +193,7 @@ module.exports.testAccumulator = {
         ma.addText("This is a test.");
 
         test.ok(ma.root.children);
-        test.equal(ma.root.children[0], "This is a test.");
+        test.equal(ma.root.children[0].value, "This is a test.");
 
         test.done();
     },
@@ -211,23 +209,22 @@ module.exports.testAccumulator = {
         ma.addText("\n");
 
         test.ok(ma.root.children);
-        test.equal(ma.root.children[0], "   This is a test.");
-        test.equal(ma.root.children[1], " ");
-        test.equal(ma.root.children[2], "\n");
+        test.equal(ma.root.children[0].value, "   This is a test.");
+        test.equal(ma.root.children[1].value, " ");
+        test.equal(ma.root.children[2].value, "\n");
 
         test.done();
     },
 
     testMessageAccumulatorBuildAddUndefined: function(test) {
-        test.expect(3);
+        test.expect(2);
 
         let ma = new MessageAccumulator();
         test.ok(ma);
 
         ma.addText();
 
-        test.ok(ma.root.children);
-        test.equal(ma.root.children.length, 0);
+        test.ok(!ma.root.children);
 
         test.done();
     },
@@ -286,7 +283,7 @@ module.exports.testAccumulator = {
 
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 2);
-        test.equal(ma.root.children[0], "This is ");
+        test.equal(ma.root.children[0].value, "This is ");
         test.equal(ma.root.children[1].extra, 5);
 
         test.done();
@@ -305,10 +302,10 @@ module.exports.testAccumulator = {
         test.ok(ma.root.children);
 
         test.contains(ma.root.children, [
-            "This is ",
+            {value: "This is "},
             {
                 children: [
-                    "a test"
+                    {value: "a test"}
                 ],
                 index: 0,
                 extra: 5
@@ -346,7 +343,7 @@ module.exports.testAccumulator = {
 
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 1);
-        test.equal(ma.root.children[0], "foo");
+        test.equal(ma.root.children[0].value, "foo");
 
         test.done();
     },
@@ -721,21 +718,21 @@ module.exports.testAccumulator = {
 
         test.contains(ma.root, {
             children: [
-                "Einen großen ",
+                {value: "Einen großen "},
                 {
                     children: [
-                        "Tritt"
+                        {value: "Tritt"}
                     ],
                     index: 1
                 },
-                " in Richtung Tor geben Sie am ",
+                {value: " in Richtung Tor geben Sie am "},
                 {
                     children: [
-                        "Ball"
+                        {value: "Ball"}
                     ],
                     index: 0
                 },
-                " hin."
+                {value: " hin."}
             ]
         });
 
