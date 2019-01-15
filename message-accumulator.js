@@ -78,6 +78,7 @@ export default class MessageAccumulator {
                 // strip off the outer tags before processing the stuff in the middle
                 const substr = parts[i].substring(len, parts[i].length - len - 1);
                 const component = new Node({
+                    type: 'component',
                     parent,
                     index,
                     extra: mapping && mapping[`c${index}`]
@@ -119,6 +120,7 @@ export default class MessageAccumulator {
      */
     push(extra) {
         const newNode = new Node({
+            type: 'component',
             parent: this.currentLevel,
             index: this.componentIndex++,
             extra
