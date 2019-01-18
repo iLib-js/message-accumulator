@@ -25,7 +25,7 @@ module.exports.testAccumulator = {
 
         let ma = MessageAccumulator.create();
         test.ok(ma);
-        test.ok(!ma.root.children);
+        test.equal(ma.root.children.length, 0);
 
         test.done();
     },
@@ -165,7 +165,7 @@ module.exports.testAccumulator = {
         let ma = MessageAccumulator.create("");
         test.ok(ma);
 
-        test.ok(!ma.root.children);
+        test.equal(ma.root.children.length, 0);
 
         test.done();
     },
@@ -224,7 +224,7 @@ module.exports.testAccumulator = {
 
         ma.addText();
 
-        test.ok(!ma.root.children);
+        test.equal(ma.root.children.length, 0);
 
         test.done();
     },
@@ -310,6 +310,31 @@ module.exports.testAccumulator = {
                 index: 0,
                 extra: 5
             }
+        ]);
+
+        test.done();
+    },
+
+    testMessageAccumulatorBuildPushPopWithNoContent: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("This is ");
+        ma.push(5);
+        ma.pop();
+        ma.addText("a test");
+
+        test.ok(ma.root.children);
+
+        test.contains(ma.root.children, [
+            {value: "This is "},
+            {
+                index: 0,
+                extra: 5
+            },
+            {value: "a test"}
         ]);
 
         test.done();
@@ -492,6 +517,24 @@ module.exports.testAccumulator = {
         test.ok(ma.root.children);
 
         test.equal(ma.getString(), "<c0>This is <c1>a test of the <c2>emergency message system</c2>.</c1></c0>");
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetStringPushPopWithNoContents: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("This is a test of the ");
+        ma.push(5);
+        ma.pop();  // simulates a self-closing tag
+        ma.addText(" emergency message system.");
+
+        test.equal(ma.root.children.length, 3);
+
+        test.equal(ma.getString(), "This is a test of the <c0></c0> emergency message system.");
 
         test.done();
     },

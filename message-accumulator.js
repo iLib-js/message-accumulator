@@ -134,13 +134,15 @@ export default class MessageAccumulator {
      * Pop the current context from the stack and return to the previous
      * context. If the current context is already the root, then this
      * represents an unbalanced string.
-     * @returns {Object} the extra information associated with the
-     * context that is being popped
+     * @returns {Object|undefined} the extra information associated with the
+     * context that is being popped, or undefined if we are already at the
+     * root and there is nothing to pop
      */
     pop() {
         if (!this.currentLevel.parent) {
             // oh oh, unbalanced?
             console.log('Unbalanced component error...'); // eslint-disable-line no-console
+            return;
         }
         var extra = this.currentLevel.extra;
         this.currentLevel = this.currentLevel.parent;
@@ -156,10 +158,15 @@ export default class MessageAccumulator {
      */
     getString() {
         return this.root.toArray().map(node => {
-            if (node.use === "start" && node.index > -1) {
-                return `<c${node.index}>`;
-            } else if (node.use === "end" && node.index > -1) {
-                return `</c${node.index}>`;
+            if (node.type === "component") {
+                if (node.use === "start" && node.index > -1) {
+                    return `<c${node.index}>`;
+                } else if (node.use === "end" && node.index > -1) {
+                    return `</c${node.index}>`;
+                } else {
+                    // self-closing
+                    return `<c${node.index}></c${node.index}>`;
+                }
             } else {
                 return node.value;
             }
