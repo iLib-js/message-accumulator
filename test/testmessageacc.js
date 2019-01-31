@@ -881,4 +881,75 @@ module.exports.testAccumulator = {
         test.done();
     },
 
+    testMessageAccumulatorCullOuterComponent: function(test) {
+        test.expect(7);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+
+        test.equal(source.getString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0>");
+        test.equal(source.getCulledString(), "You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.");
+    },
+
+    testMessageAccumulatorCullOuterComponents: function(test) {
+        test.expect(7);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.push({name: "x"});
+        source.push({name: "y"});
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+        source.pop();
+        source.pop();
+
+        test.equal(source.getString(), "<c0><c1><c2>You give <c3>the ball</c3> a big <c4>kick</c4> towards the goal.</c2></c1></c0>");
+        test.equal(source.getCulledString(), "You give <c3>the ball</c3> a big <c4>kick</c4> towards the goal.");
+    },
+
+    testMessageAccumulatorDontCullNonOuterComponents: function(test) {
+        test.expect(7);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+        source.addText(" After you score, you celebrate.");
+
+        test.equal(source.getString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0> After you score, you celebrate.");
+        test.equal(source.getCulledString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0> After you score, you celebrate.");
+    },
+
 };
