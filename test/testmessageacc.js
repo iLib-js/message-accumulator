@@ -882,7 +882,7 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorCullOuterComponent: function(test) {
-        test.expect(7);
+        test.expect(3);
 
         let source = new MessageAccumulator();
         test.ok(source);
@@ -901,10 +901,12 @@ module.exports.testAccumulator = {
 
         test.equal(source.getString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0>");
         test.equal(source.getCulledString(), "You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.");
+
+        test.done();
     },
 
     testMessageAccumulatorCullOuterComponents: function(test) {
-        test.expect(7);
+        test.expect(3);
 
         let source = new MessageAccumulator();
         test.ok(source);
@@ -927,10 +929,12 @@ module.exports.testAccumulator = {
 
         test.equal(source.getString(), "<c0><c1><c2>You give <c3>the ball</c3> a big <c4>kick</c4> towards the goal.</c2></c1></c0>");
         test.equal(source.getCulledString(), "You give <c3>the ball</c3> a big <c4>kick</c4> towards the goal.");
+
+        test.done();
     },
 
     testMessageAccumulatorDontCullNonOuterComponents: function(test) {
-        test.expect(7);
+        test.expect(3);
 
         let source = new MessageAccumulator();
         test.ok(source);
@@ -950,6 +954,48 @@ module.exports.testAccumulator = {
 
         test.equal(source.getString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0> After you score, you celebrate.");
         test.equal(source.getCulledString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0> After you score, you celebrate.");
+
+        test.done();
     },
 
+    testMessageAccumulatorCullEmpty: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        test.equal(source.getString(), "");
+        test.equal(source.getCulledString(), "");
+
+        test.done();
+    },
+
+    testMessageAccumulatorCullSimple: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.addText("Test");
+
+        test.equal(source.getString(), "Test");
+        test.equal(source.getCulledString(), "Test");
+
+        test.done();
+    },
+
+    testMessageAccumulatorCullUnbalanced: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "i"});
+        source.addText("Test");
+
+        test.equal(source.getString(), "<c0>Test</c0>");
+        test.equal(source.getCulledString(), "Test");
+
+        test.done();
+    }
 };

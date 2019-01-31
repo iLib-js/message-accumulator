@@ -150,6 +150,33 @@ export default class MessageAccumulator {
     }
 
     /**
+     * @private
+     */
+    _getString(rootnode) {
+        if (rootnode.children.length === 0) {
+            return rootnode.value || "";
+        }
+        return rootnode.children.map(child => {
+            return child.toArray().map(node => {
+                if (node.type === "component") {
+                    if (node.index > -1) {
+                        if (node.use === "start") {
+                            return `<c${node.index}>`;
+                        } else if (node.use === "end") {
+                            return `</c${node.index}>`;
+                        } else {
+                            // self-closing
+                            return `<c${node.index}></c${node.index}>`;
+                        }
+                    }
+                } else {
+                    return node.value;
+                }
+            }).join('');
+        }).join('');
+    }
+
+    /**
      * Return the message accumulated so far, including any components
      * as a string that contains "c" + a number to represent those
      * components.
@@ -157,20 +184,26 @@ export default class MessageAccumulator {
      * @return {string} the accumulated string so far
      */
     getString() {
-        return this.root.toArray().map(node => {
-            if (node.type === "component") {
-                if (node.use === "start" && node.index > -1) {
-                    return `<c${node.index}>`;
-                } else if (node.use === "end" && node.index > -1) {
-                    return `</c${node.index}>`;
-                } else {
-                    // self-closing
-                    return `<c${node.index}></c${node.index}>`;
-                }
-            } else {
-                return node.value;
-            }
-        }).join('');
+        return this._getString(this.root);
+    }
+
+    /**
+     * Return the message accumulated so far as a string, including
+     * any components. This is similar to getString(), but with the
+     * difference that all outer components are culled from the
+     * string first. Outer components are ones that surround the
+     * entire string and therefore do not contribute to marking
+     * parts of the string as different.
+     * 
+     * @return {string} the accumuilated string so far with all outer
+     * components removed.
+     */
+    getCulledString() {
+        var subroot = this.root;
+        while (subroot.children && subroot.children.length === 1) {
+            subroot = subroot.children[0];
+        }
+        return this._getString(subroot);
     }
 
     /**
