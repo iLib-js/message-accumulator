@@ -177,6 +177,104 @@ export default class MessageAccumulator {
     }
 
     /**
+     * @private
+     */
+    _isEmpty(node) {
+        if (node.type === "text" && node.value.trim() !== "") return false;
+        if (node.type === "component" && node.children && node.children.length) {
+            return node.children.some(child => {
+                return this._isEmpty(child);
+            });
+        }
+        return true;
+    }
+
+    /**
+     * @private
+     */
+    _renumber(node) {
+        if (node.type === "component") {
+            node.index = this.componentIndex++;
+            this.mapping[`c${node.index}`] = node.extra;
+        }
+        if (node.children) {
+            node.children.forEach(child => {
+                this._renumber(child);
+            });
+        }
+    }
+
+    /**
+     * @private
+     */
+    _minimize() {
+        if (this.minimized) return;
+
+        var value, changed = true;
+
+        if (!this.prefixes) this.prefixes = [];
+        if (!this.suffixes) this.suffixes = [];
+
+        while (changed && this.root.children && this.root.children.length) {
+            changed = false;
+            var subroot = this.root;
+            while (subroot.children && subroot.children.length === 1) {
+                value = (subroot.extra && subroot.extra.clone()) || {};
+                value.use = "start";
+                this.prefixes.push(value);
+                value = (subroot.extra && subroot.extra.clone()) || {};
+                value.use = "end";
+                this.suffixes = [value].concat(this.suffixes);
+
+                subroot = subroot.children[0];
+                changed = true;
+            }
+
+            var children = subroot.children;
+
+            // find empty components at the start
+            var i = 0;
+            while (i < children.length && children[i] && this._isEmpty(children[i])) {
+                i++;
+                if (children[i].extra) {
+                    value = children[i].extra.clone();
+                    value.use = "start";
+                } else {
+                    value = children[i].value;
+                }
+                this.prefixes.push(value);
+                changed = true;
+            }
+
+            children = i > 0 ? children.slice(i) : children;
+
+            // then find empty components at the end
+            var i = children.length - 1;
+            while (i > 0 && children[i] && this._isEmpty(children[i])) {
+                i--;
+                if (children[i].extra) {
+                    value = children[i].extra.clone();
+                    value.use = "end";
+                } else {
+                    value = children[i].value;
+                }
+                this.suffixes = [value].concat(this.suffixes);
+                changed = true;
+            }
+
+            this.root.children = i < children.length - 1 ? children.slice(0, i+1) : children;
+        }
+
+        // now walk the tree again and renumber any components so that we don't start at some number greater
+        // than zero
+        this.componentIndex = 0;
+        this.mapping = {};
+        this._renumber(this.root);
+
+        this.minimized = true;
+    }
+
+    /**
      * Return the message accumulated so far, including any components
      * as a string that contains "c" + a number to represent those
      * components.
@@ -188,22 +286,64 @@ export default class MessageAccumulator {
     }
 
     /**
+     * Return all of the irrelevant parts of the string at the beginning
+     * of the message.<p>
+     *
+     * For a minimal string, all of the components that are irrelevant
+     * for translation are removed. This method returns all of the irrelevant
+     * components and text units that appear at the beginning of the string.
+     *
+     * @returns {Array.<Object>} an array of "extra" and text units that
+     * are irrelevant
+     */
+    getPrefix() {
+        this._minimize();
+        return this.prefixes || [];
+    }
+
+    /**
      * Return the message accumulated so far as a string, including
-     * any components. This is similar to getString(), but with the
-     * difference that all outer components are culled from the
-     * string first. Outer components are ones that surround the
-     * entire string and therefore do not contribute to marking
-     * parts of the string as different.
-     * 
-     * @return {string} the accumuilated string so far with all outer
+     * any components, and leaving out any contexts that are irrelevant
+     * for translation purposes. This method is similar to getString()
+     * with the irrelevant parts removed. This includes:
+     *
+     * <ul>
+     * <li>Any components that surround the entire message
+     * <li>Any components that are at the beginning or end of the message
+     * and which do not have any translatable text in them.
+     * <li>Any text at the beginning or end of the string that only
+     * contains whitespace.
+     * </ul>
+     *
+     * A minimal string must either start with non-whitespace text or end with
+     * non-whitespace text or both.<p>
+     *
+     * After all the irrelevant parts are removed, the remaining components
+     * are renumbered so that the first one to appear starts at zero, the
+     * second one is one, etc.
+     *
+     * @return {string} the accumuilated string so far with all irrelevant
      * components removed.
      */
-    getCulledString() {
-        var subroot = this.root;
-        while (subroot.children && subroot.children.length === 1) {
-            subroot = subroot.children[0];
-        }
-        return this._getString(subroot);
+    getMinimalString() {
+        this._minimize();
+        return this._getString(this.root);
+    }
+
+    /**
+     * Return all of the irrelevant parts of the string at the end
+     * of the message.<p>
+     *
+     * For a minimal string, all of the components that are irrelevant
+     * for translation are removed. This method returns all of the irrelevant
+     * components and text units that appear at the end of the string.
+     *
+     * @returns {Array.<Object>} an array of "extra" and text units that
+     * are irrelevant
+     */
+    getSuffix() {
+        this._minimize();
+        return this.prefixes || [];
     }
 
     /**
