@@ -20,6 +20,10 @@
 
 import Node from 'ilib-tree-node';
 
+function clone(obj) {
+    return Object.assign({}, obj);
+}
+
 /**
  * MessageAccumulator.js - accumulate a translatable message as a string
  */
@@ -218,15 +222,15 @@ export default class MessageAccumulator {
         while (changed && this.root.children && this.root.children.length) {
             changed = false;
             var subroot = this.root;
-            while (subroot.children && subroot.children.length === 1) {
-                value = (subroot.extra && subroot.extra.clone()) || {};
+            while (subroot.children && subroot.children.length === 1 && subroot.children[0].type !== "text") {
+                subroot = subroot.children[0];
+                value = (subroot.extra && clone(subroot.extra)) || {};
                 value.use = "start";
                 this.prefixes.push(value);
-                value = (subroot.extra && subroot.extra.clone()) || {};
+                value = (subroot.extra && clone(subroot.extra)) || {};
                 value.use = "end";
                 this.suffixes = [value].concat(this.suffixes);
 
-                subroot = subroot.children[0];
                 changed = true;
             }
 
@@ -237,7 +241,7 @@ export default class MessageAccumulator {
             while (i < children.length && children[i] && this._isEmpty(children[i])) {
                 i++;
                 if (children[i].extra) {
-                    value = children[i].extra.clone();
+                    value = clone(children[i].extra);
                     value.use = "start";
                 } else {
                     value = children[i].value;
@@ -253,7 +257,7 @@ export default class MessageAccumulator {
             while (i > 0 && children[i] && this._isEmpty(children[i])) {
                 i--;
                 if (children[i].extra) {
-                    value = children[i].extra.clone();
+                    value = clone(children[i].extra);
                     value.use = "end";
                 } else {
                     value = children[i].value;
@@ -262,7 +266,29 @@ export default class MessageAccumulator {
                 changed = true;
             }
 
+            // now strip off the leading and trailing whitespace
+            if (children.length && children[0].type === "text") {
+                var re = /^\s+/;
+                var match = re.exec(children[0].value);
+                if (match) {
+                    children[0].value = children[0].value.substring(match[0].length);
+                    this.prefixes.push(match[0]);
+                    changed = true;
+                }
+            }
+            var last = children.length-1;
+            if (children.length && children[last].type === "text") {
+                var re = /\s+$/;
+                var match = re.exec(children[last].value);
+                if (match) {
+                    children[last].value = children[last].value.substring(0, children[last].length - match[0].length);
+                    this.suffixes = [match[0]].concat(this.suffixes);
+                    changed = true;
+                }
+            }
+
             this.root.children = i < children.length - 1 ? children.slice(0, i+1) : children;
+            // then do it all again until nothing changes!
         }
 
         // now walk the tree again and renumber any components so that we don't start at some number greater
@@ -343,7 +369,7 @@ export default class MessageAccumulator {
      */
     getSuffix() {
         this._minimize();
-        return this.prefixes || [];
+        return this.suffixes || [];
     }
 
     /**

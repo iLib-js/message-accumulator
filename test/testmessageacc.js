@@ -990,7 +990,7 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorGetPrefixMultiple: function(test) {
-        test.expect(3);
+        test.expect(8);
 
         let source = new MessageAccumulator();
         test.ok(source);
@@ -1025,7 +1025,7 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorGetSuffixMultiple: function(test) {
-        test.expect(3);
+        test.expect(8);
 
         let source = new MessageAccumulator();
         test.ok(source);
@@ -1052,9 +1052,9 @@ module.exports.testAccumulator = {
         var suffix = source.getSuffix();
         test.ok(suffix);
         test.equal(suffix.length, 3);
-        test.deepEqual(suffix[0], {name: "a", use: "end"});
+        test.deepEqual(suffix[0], {name: "y", use: "end"});
         test.deepEqual(suffix[1], {name: "x", use: "end"});
-        test.deepEqual(suffix[2], {name: "y", use: "end"});
+        test.deepEqual(suffix[2], {name: "a", use: "end"});
 
         test.done();
     },
@@ -1085,7 +1085,7 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorDontMinimizeNonOuterComponentsNoPrefixOrSuffix: function(test) {
-        test.expect(3);
+        test.expect(7);
 
         let source = new MessageAccumulator();
         test.ok(source);
