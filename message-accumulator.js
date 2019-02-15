@@ -245,9 +245,11 @@ export default class MessageAccumulator {
             return node.value;
         }
 
+        // keep stripping off parts until we haven't changed anything, or we have stripped off everything
         while (changed && this.root.children && this.root.children.length) {
             changed = false;
             var subroot = this.root;
+            // check for "outer" components -- components that surround localizable text without adding anything to it
             while (subroot.children && subroot.children.length === 1 && subroot.children[0].type !== "text") {
                 subroot = subroot.children[0];
                 value = clone(subroot.extra);
