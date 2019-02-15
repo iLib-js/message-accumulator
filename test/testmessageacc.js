@@ -1165,7 +1165,7 @@ module.exports.testAccumulator = {
         test.ok(ma);
 
         test.ok(ma.root.children);
-        test.equal(ma.root.children.length, 4);
+        test.equal(ma.root.children.length, 3);
 
         test.equal(ma.getString(), "   This is a test of the <c0>decomposition</c0> system.   ");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
@@ -1270,7 +1270,7 @@ module.exports.testAccumulator = {
         test.ok(ma);
 
         test.ok(ma.root.children);
-        test.equal(ma.root.children.length, 4);
+        test.equal(ma.root.children.length, 5);
 
         test.equal(ma.getString(), "<c0></c0>This is a test of the <c1>decomposition</c1> system.<c2></c2>");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
@@ -1285,7 +1285,7 @@ module.exports.testAccumulator = {
         test.ok(ma);
 
         test.ok(ma.root.children);
-        test.equal(ma.root.children.length, 4);
+        test.equal(ma.root.children.length, 5);
 
         test.equal(ma.getString(), "<c0>\n</c0>This is a test of the <c1>decomposition</c1> system.<c2>    </c2>");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
@@ -1300,7 +1300,7 @@ module.exports.testAccumulator = {
         test.ok(ma);
 
         test.ok(ma.root.children);
-        test.equal(ma.root.children.length, 4);
+        test.equal(ma.root.children.length, 5);
 
         test.equal(ma.getString(), "<c0>\n  <c1>\n  </c1>\n</c0>This is a test of the <c2>decomposition</c2> system.<c3>  <c4> </c4>  </c3>");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
@@ -1315,7 +1315,7 @@ module.exports.testAccumulator = {
         test.ok(ma);
 
         test.ok(ma.root.children);
-        test.equal(ma.root.children.length, 4);
+        test.equal(ma.root.children.length, 1);
 
         test.equal(ma.getString(), "<c0><c1></c1>This is a test of the <c2>decomposition</c2> system.</c0>");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
@@ -1330,7 +1330,7 @@ module.exports.testAccumulator = {
         test.ok(ma);
 
         test.ok(ma.root.children);
-        test.equal(ma.root.children.length, 4);
+        test.equal(ma.root.children.length, 1);
 
         test.equal(ma.getString(), "<c0>This is a test of the <c1>decomposition</c1> system.<c2></c2></c0>");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
@@ -1339,13 +1339,13 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorMinimizeVeryComplexWithMultipleLevels: function(test) {
-        test.expect(4);
+        test.expect(5);
 
         let ma = MessageAccumulator.create("<c0><c1>  \t </c1><c2>\n<c3>\n<c4></c4></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
         test.ok(ma);
 
         test.ok(ma.root.children);
-        test.equal(ma.root.children.length, 4);
+        test.equal(ma.root.children.length, 1);
 
         test.equal(ma.getString(), "<c0><c1>  \t </c1><c2>\n<c3>\n<c4></c4></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
@@ -1354,7 +1354,7 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorMinimizeVeryComplexPrefix: function(test) {
-        test.expect(4);
+        test.expect(19);
 
         let source = new MessageAccumulator();
         test.ok(source);
@@ -1407,7 +1407,7 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorMinimizeVeryComplexSuffix: function(test) {
-        test.expect(4);
+        test.expect(13);
 
         let source = new MessageAccumulator();
         test.ok(source);
