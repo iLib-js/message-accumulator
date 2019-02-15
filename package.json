@@ -1,6 +1,6 @@
 {
     "name": "message-accumulator",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "main": "./message-accumulator-es5.js",
     "main-es6": "./message-accumulator.js",
     "description": "A package to accumulate localizable snippets of HTML or JSX text and to compose and decompose them to/from localizable strings",
@@ -51,23 +51,21 @@
         "debug": "npm run build ; node --inspect-brk test/testSuite.js"
     },
     "dependencies": {
-        "ilib-tree-node": "^1.0.0"
+        "ilib-tree-node": "^1.1.0"
     },
     "devDependencies": {
-        "acorn": "^6.0.2",
-        "acorn-jsx": "^5.0.0",
         "babel-core": "^6.26.0",
         "babel-preset-env": "*",
         "babel-register": "^6.26.0",
         "babel-runtime": "^6.26.0",
         "grunt": "^1.0.3",
+        "grunt-babel": "^7.0.0",
         "grunt-contrib-clean": "^2.0.0",
         "grunt-contrib-jshint": "^2.0.0",
         "grunt-contrib-nodeunit": "^2.0.0",
         "grunt-contrib-uglify": "^4.0.0",
-        "grunt-babel": "^7.0.0",
         "load-grunt-tasks": "^4.0.0",
-        "promise": "8.0.1",
-        "nodeunit": "0.11.0"
+        "nodeunit": "0.11.0",
+        "promise": "8.0.1"
     }
 }

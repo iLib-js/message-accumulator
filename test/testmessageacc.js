@@ -76,7 +76,7 @@ module.exports.testAccumulator = {
     testMessageAccumulatorFromStringWithEmptyComponent: function(test) {
         test.expect(4);
 
-        let ma = MessageAccumulator.create("<c0></c0>");
+        let ma = MessageAccumulator.create("<c0/>");
         test.ok(ma);
 
         test.ok(ma.root.children);
@@ -534,7 +534,7 @@ module.exports.testAccumulator = {
 
         test.equal(ma.root.children.length, 3);
 
-        test.equal(ma.getString(), "This is a test of the <c0></c0> emergency message system.");
+        test.equal(ma.getString(), "This is a test of the <c0/> emergency message system.");
 
         test.done();
     },
@@ -878,6 +878,686 @@ module.exports.testAccumulator = {
 
         test.equal(ma.getCurrentLevel(), 0);
 
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeOuterComponents: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+
+        test.equal(source.getString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0>");
+        test.equal(source.getMinimalString(), "You give <c0>the ball</c0> a big <c1>kick</c1> towards the goal.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetPrefix: function(test) {
+        test.expect(6);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+
+        test.equal(source.getString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0>");
+        test.equal(source.getMinimalString(), "You give <c0>the ball</c0> a big <c1>kick</c1> towards the goal.");
+        var prefix = source.getPrefix();
+        test.ok(prefix);
+        test.equal(prefix.length, 1);
+        test.deepEqual(prefix[0], {name: "a", use: "start"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetSuffix: function(test) {
+        test.expect(6);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+
+        test.equal(source.getString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0>");
+        test.equal(source.getMinimalString(), "You give <c0>the ball</c0> a big <c1>kick</c1> towards the goal.");
+        var suffix = source.getSuffix();
+        test.ok(suffix);
+        test.equal(suffix.length, 1);
+        test.deepEqual(suffix[0], {name: "a", use: "end"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeMultipleOuterComponents: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.push({name: "x"});
+        source.push({name: "y"});
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+        source.pop();
+        source.pop();
+
+        test.equal(source.getString(), "<c0><c1><c2>You give <c3>the ball</c3> a big <c4>kick</c4> towards the goal.</c2></c1></c0>");
+        test.equal(source.getMinimalString(), "You give <c0>the ball</c0> a big <c1>kick</c1> towards the goal.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetPrefixMultiple: function(test) {
+        test.expect(8);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.push({name: "x"});
+        source.push({name: "y"});
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+        source.pop();
+        source.pop();
+
+        test.equal(source.getString(), "<c0><c1><c2>You give <c3>the ball</c3> a big <c4>kick</c4> towards the goal.</c2></c1></c0>");
+        test.equal(source.getMinimalString(), "You give <c0>the ball</c0> a big <c1>kick</c1> towards the goal.");
+
+        var prefix = source.getPrefix();
+        test.ok(prefix);
+        test.equal(prefix.length, 3);
+        test.deepEqual(prefix[0], {name: "a", use: "start"});
+        test.deepEqual(prefix[1], {name: "x", use: "start"});
+        test.deepEqual(prefix[2], {name: "y", use: "start"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetSuffixMultiple: function(test) {
+        test.expect(8);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.push({name: "x"});
+        source.push({name: "y"});
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+        source.pop();
+        source.pop();
+
+        test.equal(source.getString(), "<c0><c1><c2>You give <c3>the ball</c3> a big <c4>kick</c4> towards the goal.</c2></c1></c0>");
+        test.equal(source.getMinimalString(), "You give <c0>the ball</c0> a big <c1>kick</c1> towards the goal.");
+
+        var suffix = source.getSuffix();
+        test.ok(suffix);
+        test.equal(suffix.length, 3);
+        test.deepEqual(suffix[0], {name: "y", use: "end"});
+        test.deepEqual(suffix[1], {name: "x", use: "end"});
+        test.deepEqual(suffix[2], {name: "a", use: "end"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorDontMinimizeNonOuterComponents: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+        source.addText(" After you score, you celebrate.");
+
+        test.equal(source.getString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0> After you score, you celebrate.");
+        test.equal(source.getMinimalString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0> After you score, you celebrate.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorDontMinimizeNonOuterComponentsNoPrefixOrSuffix: function(test) {
+        test.expect(7);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+        source.addText(" After you score, you celebrate.");
+
+        test.equal(source.getString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0> After you score, you celebrate.");
+        test.equal(source.getMinimalString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0> After you score, you celebrate.");
+
+        var prefix = source.getPrefix();
+        test.ok(prefix);
+        test.equal(prefix.length, 0);
+
+        var suffix = source.getSuffix();
+        test.ok(suffix);
+        test.equal(suffix.length, 0);
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeEmpty: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        test.equal(source.getString(), "");
+        test.equal(source.getMinimalString(), "");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeSimple: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.addText("Test");
+
+        test.equal(source.getString(), "Test");
+        test.equal(source.getMinimalString(), "Test");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeUnbalanced: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "i"});
+        source.addText("Test");
+
+        test.equal(source.getString(), "<c0>Test</c0>");
+        test.equal(source.getMinimalString(), "Test");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeWhitespace: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("   This is a test of the <c0>decomposition</c0> system.   ");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 3);
+
+        test.equal(ma.getString(), "   This is a test of the <c0>decomposition</c0> system.   ");
+        test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizePrefixComponents: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("<c0/>This is a test of the <c1>decomposition</c1> system.");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 4);
+
+        test.equal(ma.getString(), "<c0/>This is a test of the <c1>decomposition</c1> system.");
+        test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizePrefixComponentsWithSpace: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("<c0>    </c0>This is a test of the <c1>decomposition</c1> system.");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 4);
+
+        test.equal(ma.getString(), "<c0>    </c0>This is a test of the <c1>decomposition</c1> system.");
+        test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizePrefixComponentsWithSpaceAndSubcomponents: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("<c0>\n  <c1>\n  </c1>\n</c0>This is a test of the <c2>decomposition</c2> system.");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 4);
+
+        test.equal(ma.getString(), "<c0>\n  <c1>\n  </c1>\n</c0>This is a test of the <c2>decomposition</c2> system.");
+        test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeSuffixComponents: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("This is a test of the <c0>decomposition</c0> system.<c1/>");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 4);
+
+        test.equal(ma.getString(), "This is a test of the <c0>decomposition</c0> system.<c1/>");
+        test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeSuffixComponentsWithSpace: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("This is a test of the <c0>decomposition</c0> system.<c1>    </c1>");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 4);
+
+        test.equal(ma.getString(), "This is a test of the <c0>decomposition</c0> system.<c1>    </c1>");
+        test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeSuffixComponentsWithSpaceAndSubcomponents: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("This is a test of the <c0>decomposition</c0> system.<c1>\n  <c2>\n  </c2>\n</c1>");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 4);
+
+        test.equal(ma.getString(), "This is a test of the <c0>decomposition</c0> system.<c1>\n  <c2>\n  </c2>\n</c1>");
+        test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizePrefixAndSuffixComponents: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("<c0/>This is a test of the <c1>decomposition</c1> system.<c2/>");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 5);
+
+        test.equal(ma.getString(), "<c0/>This is a test of the <c1>decomposition</c1> system.<c2/>");
+        test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizePrefixAndSuffixComponentsWithSpace: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("<c0>\n</c0>This is a test of the <c1>decomposition</c1> system.<c2>    </c2>");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 5);
+
+        test.equal(ma.getString(), "<c0>\n</c0>This is a test of the <c1>decomposition</c1> system.<c2>    </c2>");
+        test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizePrefixAndSuffixComponentsWithSpaceAndSubcomponents: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("<c0>\n  <c1>\n  </c1>\n</c0>This is a test of the <c2>decomposition</c2> system.<c3>  <c4> </c4>  </c3>");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 5);
+
+        test.equal(ma.getString(), "<c0>\n  <c1>\n  </c1>\n</c0>This is a test of the <c2>decomposition</c2> system.<c3>  <c4> </c4>  </c3>");
+        test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizePrefixAndOuterComponents: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("<c0><c1/>This is a test of the <c2>decomposition</c2> system.</c0>");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 1);
+
+        test.equal(ma.getString(), "<c0><c1/>This is a test of the <c2>decomposition</c2> system.</c0>");
+        test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeSuffixAndOuterComponents: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("<c0>This is a test of the <c1>decomposition</c1> system.<c2/></c0>");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 1);
+
+        test.equal(ma.getString(), "<c0>This is a test of the <c1>decomposition</c1> system.<c2/></c0>");
+        test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeVeryComplexWithMultipleLevels: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("<c0><c1>  \t </c1><c2>\n<c3>\n<c4/></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 1);
+
+        test.equal(ma.getString(), "<c0><c1>  \t </c1><c2>\n<c3>\n<c4/></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
+        test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeVeryComplexPrefix: function(test) {
+        test.expect(18);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.push({name: "b"});
+        source.addText("  \t ");
+        source.pop();
+        source.push({name: "c"});
+        source.addText("\n");
+        source.push({name: "d"});
+        source.addText("\n");
+        source.push({name: "e"});
+        source.pop();
+        source.pop();
+        source.addText("\n  This is a test of the ");
+        source.push({name: "f"});
+        source.addText("decomposition");
+        source.pop();
+        source.addText(" system.   ");
+        source.push({name: "g"});
+        source.addText("\n");
+        source.pop();
+        source.pop();
+        source.pop();
+
+        test.ok(source.root.children);
+        test.equal(source.root.children.length, 1);
+
+        test.equal(source.getString(), "<c0><c1>  \t </c1><c2>\n<c3>\n<c4/></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
+        test.equal(source.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        var prefix = source.getPrefix();
+        test.ok(prefix);
+        test.equal(prefix.length, 11);
+        test.deepEqual(prefix[0], {name: "a", use: "start"});
+        test.deepEqual(prefix[1], {name: "b", use: "start"});
+        test.equals(prefix[2], "  \t ");
+        test.deepEqual(prefix[3], {name: "b", use: "end"});
+        test.deepEqual(prefix[4], {name: "c", use: "start"});
+        test.equals(prefix[5], "\n");
+        test.deepEqual(prefix[6], {name: "d", use: "start"});
+        test.equals(prefix[7], "\n");
+        test.deepEqual(prefix[8], {name: "e", use: "startend"});
+        test.deepEqual(prefix[9], {name: "d", use: "end"});
+        test.equals(prefix[10], "\n  ");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeVeryComplexSuffix: function(test) {
+        test.expect(13);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.push({name: "b"});
+        source.addText("  \t ");
+        source.pop();
+        source.push({name: "c"});
+        source.addText("\n");
+        source.push({name: "d"});
+        source.addText("\n");
+        source.push({name: "e"});
+        source.pop();
+        source.pop();
+        source.addText("\n  This is a test of the ");
+        source.push({name: "f"});
+        source.addText("decomposition");
+        source.pop();
+        source.addText(" system.   ");
+        source.push({name: "g"});
+        source.addText("\n");
+        source.pop();
+        source.pop();
+        source.pop();
+
+        test.ok(source.root.children);
+        test.equal(source.root.children.length, 1);
+
+        test.equal(source.getString(), "<c0><c1>  \t </c1><c2>\n<c3>\n<c4/></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
+        test.equal(source.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        var prefix = source.getSuffix();
+        test.ok(prefix);
+        test.equal(prefix.length, 6);
+
+        test.equals(prefix[0], "   ");
+        test.deepEqual(prefix[1], {name: "g", use: "start"});
+        test.equals(prefix[2], "\n");
+        test.deepEqual(prefix[3], {name: "g", use: "end"});
+        test.deepEqual(prefix[4], {name: "c", use: "end"});
+        test.deepEqual(prefix[5], {name: "a", use: "end"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeMappingStillCorrect: function(test) {
+        test.expect(7);
+
+        let ma = MessageAccumulator.create("<c0>This is a test of the <c1>decomposition</c1> system.<c2/></c0>");
+        test.ok(ma);
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("This is a test of the ");
+        source.push({name: "b"});
+        source.addText("decomposition");
+        source.pop();
+        source.addText(" system.");
+        source.push({name: "c"});
+        source.pop();
+        source.pop();
+
+        test.ok(source.root.children);
+        test.equal(source.root.children.length, 1);
+
+        test.deepEqual(source.getMapping(), {
+            "c0": {name: "a"},
+            "c1": {name: "b"},
+            "c2": {name: "c"}
+        });
+
+        test.equal(source.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.deepEqual(source.getMapping(), {
+            "c0": {name: "b"}
+        });
+
+        test.done();
+    },
+
+    testMessageAccumulatorParseSelfClosingComponent: function(test) {
+        test.expect(4);
+
+        let ma = MessageAccumulator.create("This is a test of the <c0/> decomposition system.");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 3);
+
+        test.contains(ma.root, {
+            children: [
+                {value: "This is a test of the "},
+                {
+                    children: [],
+                    index: 0
+                },
+                {value: " decomposition system."}
+            ]
+        });
+
+        test.done();
+    },
+
+    testMessageAccumulatorCreateWithSource: function(test) {
+        test.expect(5);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.addText("This is a test of the ");
+        source.push({text: '<img src="http://www.example.com/foo.jpg">'});
+        source.pop();
+        source.addText(" decomposition system.");
+
+        // The translation has the components swapped from the English
+        let ma = MessageAccumulator.create("Dies ist einen Test des <c0/> Zersetzungssystems.", source);
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 3);
+
+        test.contains(ma.root, {
+            children: [
+                {value: "Dies ist einen Test des "},
+                {
+                    children: [],
+                    index: 0,
+                    extra: {text: '<img src="http://www.example.com/foo.jpg">'}
+                },
+                {value: " Zersetzungssystems."}
+            ]
+        });
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetStringSelfClosing: function(test) {
+        test.expect(2);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.addText("This is a test of the ");
+        source.push({text: '<img src="http://www.example.com/foo.jpg">'});
+        source.pop();
+        source.addText(" decomposition system.");
+
+        test.equal(source.getString(), "This is a test of the <c0/> decomposition system.");
+        
         test.done();
     },
 
