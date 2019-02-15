@@ -1354,7 +1354,7 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorMinimizeVeryComplexPrefix: function(test) {
-        test.expect(19);
+        test.expect(18);
 
         let source = new MessageAccumulator();
         test.ok(source);
@@ -1389,7 +1389,7 @@ module.exports.testAccumulator = {
 
         var prefix = source.getPrefix();
         test.ok(prefix);
-        test.equal(prefix.length, 12);
+        test.equal(prefix.length, 11);
         test.deepEqual(prefix[0], {name: "a", use: "start"});
         test.deepEqual(prefix[1], {name: "b", use: "start"});
         test.equals(prefix[2], "  \t ");
@@ -1398,10 +1398,9 @@ module.exports.testAccumulator = {
         test.equals(prefix[5], "\n");
         test.deepEqual(prefix[6], {name: "d", use: "start"});
         test.equals(prefix[7], "\n");
-        test.deepEqual(prefix[8], {name: "e", use: "start"});
-        test.deepEqual(prefix[9], {name: "e", use: "end"});
-        test.deepEqual(prefix[10], {name: "d", use: "end"});
-        test.equals(prefix[11], "\n  ");
+        test.deepEqual(prefix[8], {name: "e", use: "startend"});
+        test.deepEqual(prefix[9], {name: "d", use: "end"});
+        test.equals(prefix[10], "\n  ");
 
         test.done();
     },
@@ -1488,5 +1487,31 @@ module.exports.testAccumulator = {
         });
 
         test.done();
-    }
+    },
+
+    /*
+    testMessageAccumulatorParseSelfClosingComponent: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("This is a test of the <c0/> decomposition system.");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 3);
+
+        test.contains(ma.root, {
+            children: [
+                {value: "This is a test of the "},
+                {
+                    children: [],
+                    index: 0
+                },
+                {value: " decomposition system."}
+            ]
+        });
+
+        test.done();
+    },
+    */
+
 };

@@ -51,7 +51,7 @@
         "debug": "npm run build ; node --inspect-brk test/testSuite.js"
     },
     "dependencies": {
-        "ilib-tree-node": "^1.0.0"
+        "ilib-tree-node": "^1.1.0"
     },
     "devDependencies": {
         "acorn": "^6.0.2",
