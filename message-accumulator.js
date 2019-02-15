@@ -70,12 +70,14 @@ export default class MessageAccumulator {
     _parse(string, mapping, parent) {
         let match,
             re = /(<(c\d+)>.*<\/\2>)/gs,
-            first = /^<c(\d+)>/;
+            first = /^<c(\d+)>/,
+            selfclosing = /(<c(\d+)\/>)/g;
 
-        const parts = string.split(re);
+        let parts = string.split(re);
 
         for (var i = 0; i < parts.length; i++) {
             first.lastIndex = 0;
+            selfclosing.lastIndex = 0;
             if ((match = first.exec(parts[i])) !== null) {
                 const index = match[1];
                 const len = match[0].length;
@@ -92,11 +94,26 @@ export default class MessageAccumulator {
                 parent.add(component);
                 i++; // skip the number in the next iteration
             } else if (parts[i] && parts[i].length) {
-                // don't store empty strings
-                parent.add(new Node({
-                    type: 'text',
-                    value: parts[i]
-                }));
+                let subparts = parts[i].split(selfclosing);
+                for (var j = 0; j < subparts.length; j++) {
+                    selfclosing.lastIndex = 0;
+                    if ((match = selfclosing.exec(subparts[j])) !== null) {
+                        const index = match[2];
+                        parent.add(new Node({
+                            type: 'component',
+                            parent,
+                            index,
+                            extra: mapping && mapping[`c${index}`]
+                        }));
+                        j++; // skip the number in the next iteration
+                    } else if (subparts[j] && subparts[j].length) {
+                        // don't store empty strings
+                        parent.add(new Node({
+                            type: 'text',
+                            value: subparts[j]
+                        }));
+                    }
+                }
             }
         }
     }
@@ -170,7 +187,7 @@ export default class MessageAccumulator {
                             return `</c${node.index}>`;
                         } else {
                             // self-closing
-                            return `<c${node.index}></c${node.index}>`;
+                            return `<c${node.index}/>`;
                         }
                     }
                 } else {

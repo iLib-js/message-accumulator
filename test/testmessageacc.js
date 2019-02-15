@@ -76,7 +76,7 @@ module.exports.testAccumulator = {
     testMessageAccumulatorFromStringWithEmptyComponent: function(test) {
         test.expect(4);
 
-        let ma = MessageAccumulator.create("<c0></c0>");
+        let ma = MessageAccumulator.create("<c0/>");
         test.ok(ma);
 
         test.ok(ma.root.children);
@@ -534,7 +534,7 @@ module.exports.testAccumulator = {
 
         test.equal(ma.root.children.length, 3);
 
-        test.equal(ma.getString(), "This is a test of the <c0></c0> emergency message system.");
+        test.equal(ma.getString(), "This is a test of the <c0/> emergency message system.");
 
         test.done();
     },
@@ -1176,13 +1176,13 @@ module.exports.testAccumulator = {
     testMessageAccumulatorMinimizePrefixComponents: function(test) {
         test.expect(5);
 
-        let ma = MessageAccumulator.create("<c0></c0>This is a test of the <c1>decomposition</c1> system.");
+        let ma = MessageAccumulator.create("<c0/>This is a test of the <c1>decomposition</c1> system.");
         test.ok(ma);
 
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 4);
 
-        test.equal(ma.getString(), "<c0></c0>This is a test of the <c1>decomposition</c1> system.");
+        test.equal(ma.getString(), "<c0/>This is a test of the <c1>decomposition</c1> system.");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
 
         test.done();
@@ -1221,13 +1221,13 @@ module.exports.testAccumulator = {
     testMessageAccumulatorMinimizeSuffixComponents: function(test) {
         test.expect(5);
 
-        let ma = MessageAccumulator.create("This is a test of the <c0>decomposition</c0> system.<c1></c1>");
+        let ma = MessageAccumulator.create("This is a test of the <c0>decomposition</c0> system.<c1/>");
         test.ok(ma);
 
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 4);
 
-        test.equal(ma.getString(), "This is a test of the <c0>decomposition</c0> system.<c1></c1>");
+        test.equal(ma.getString(), "This is a test of the <c0>decomposition</c0> system.<c1/>");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
 
         test.done();
@@ -1266,13 +1266,13 @@ module.exports.testAccumulator = {
     testMessageAccumulatorMinimizePrefixAndSuffixComponents: function(test) {
         test.expect(5);
 
-        let ma = MessageAccumulator.create("<c0></c0>This is a test of the <c1>decomposition</c1> system.<c2></c2>");
+        let ma = MessageAccumulator.create("<c0/>This is a test of the <c1>decomposition</c1> system.<c2/>");
         test.ok(ma);
 
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 5);
 
-        test.equal(ma.getString(), "<c0></c0>This is a test of the <c1>decomposition</c1> system.<c2></c2>");
+        test.equal(ma.getString(), "<c0/>This is a test of the <c1>decomposition</c1> system.<c2/>");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
 
         test.done();
@@ -1311,13 +1311,13 @@ module.exports.testAccumulator = {
     testMessageAccumulatorMinimizePrefixAndOuterComponents: function(test) {
         test.expect(5);
 
-        let ma = MessageAccumulator.create("<c0><c1></c1>This is a test of the <c2>decomposition</c2> system.</c0>");
+        let ma = MessageAccumulator.create("<c0><c1/>This is a test of the <c2>decomposition</c2> system.</c0>");
         test.ok(ma);
 
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 1);
 
-        test.equal(ma.getString(), "<c0><c1></c1>This is a test of the <c2>decomposition</c2> system.</c0>");
+        test.equal(ma.getString(), "<c0><c1/>This is a test of the <c2>decomposition</c2> system.</c0>");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
 
         test.done();
@@ -1326,13 +1326,13 @@ module.exports.testAccumulator = {
     testMessageAccumulatorMinimizeSuffixAndOuterComponents: function(test) {
         test.expect(5);
 
-        let ma = MessageAccumulator.create("<c0>This is a test of the <c1>decomposition</c1> system.<c2></c2></c0>");
+        let ma = MessageAccumulator.create("<c0>This is a test of the <c1>decomposition</c1> system.<c2/></c0>");
         test.ok(ma);
 
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 1);
 
-        test.equal(ma.getString(), "<c0>This is a test of the <c1>decomposition</c1> system.<c2></c2></c0>");
+        test.equal(ma.getString(), "<c0>This is a test of the <c1>decomposition</c1> system.<c2/></c0>");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
 
         test.done();
@@ -1341,13 +1341,13 @@ module.exports.testAccumulator = {
     testMessageAccumulatorMinimizeVeryComplexWithMultipleLevels: function(test) {
         test.expect(5);
 
-        let ma = MessageAccumulator.create("<c0><c1>  \t </c1><c2>\n<c3>\n<c4></c4></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
+        let ma = MessageAccumulator.create("<c0><c1>  \t </c1><c2>\n<c3>\n<c4/></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
         test.ok(ma);
 
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 1);
 
-        test.equal(ma.getString(), "<c0><c1>  \t </c1><c2>\n<c3>\n<c4></c4></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
+        test.equal(ma.getString(), "<c0><c1>  \t </c1><c2>\n<c3>\n<c4/></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
 
         test.done();
@@ -1384,7 +1384,7 @@ module.exports.testAccumulator = {
         test.ok(source.root.children);
         test.equal(source.root.children.length, 1);
 
-        test.equal(source.getString(), "<c0><c1>  \t </c1><c2>\n<c3>\n<c4></c4></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
+        test.equal(source.getString(), "<c0><c1>  \t </c1><c2>\n<c3>\n<c4/></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
         test.equal(source.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
 
         var prefix = source.getPrefix();
@@ -1436,7 +1436,7 @@ module.exports.testAccumulator = {
         test.ok(source.root.children);
         test.equal(source.root.children.length, 1);
 
-        test.equal(source.getString(), "<c0><c1>  \t </c1><c2>\n<c3>\n<c4></c4></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
+        test.equal(source.getString(), "<c0><c1>  \t </c1><c2>\n<c3>\n<c4/></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
         test.equal(source.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
 
         var prefix = source.getSuffix();
@@ -1456,7 +1456,7 @@ module.exports.testAccumulator = {
     testMessageAccumulatorMinimizeMappingStillCorrect: function(test) {
         test.expect(7);
 
-        let ma = MessageAccumulator.create("<c0>This is a test of the <c1>decomposition</c1> system.<c2></c2></c0>");
+        let ma = MessageAccumulator.create("<c0>This is a test of the <c1>decomposition</c1> system.<c2/></c0>");
         test.ok(ma);
         let source = new MessageAccumulator();
         test.ok(source);
@@ -1489,9 +1489,8 @@ module.exports.testAccumulator = {
         test.done();
     },
 
-    /*
     testMessageAccumulatorParseSelfClosingComponent: function(test) {
-        test.expect(5);
+        test.expect(4);
 
         let ma = MessageAccumulator.create("This is a test of the <c0/> decomposition system.");
         test.ok(ma);
@@ -1512,6 +1511,54 @@ module.exports.testAccumulator = {
 
         test.done();
     },
-    */
+
+    testMessageAccumulatorCreateWithSource: function(test) {
+        test.expect(5);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.addText("This is a test of the ");
+        source.push({text: '<img src="http://www.example.com/foo.jpg">'});
+        source.pop();
+        source.addText(" decomposition system.");
+
+        // The translation has the components swapped from the English
+        let ma = MessageAccumulator.create("Dies ist einen Test des <c0/> Zersetzungssystems.", source);
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 3);
+
+        test.contains(ma.root, {
+            children: [
+                {value: "Dies ist einen Test des "},
+                {
+                    children: [],
+                    index: 0,
+                    extra: {text: '<img src="http://www.example.com/foo.jpg">'}
+                },
+                {value: " Zersetzungssystems."}
+            ]
+        });
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetStringSelfClosing: function(test) {
+        test.expect(2);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.addText("This is a test of the ");
+        source.push({text: '<img src="http://www.example.com/foo.jpg">'});
+        source.pop();
+        source.addText(" decomposition system.");
+
+        test.equal(source.getString(), "This is a test of the <c0/> decomposition system.");
+        
+        test.done();
+    },
 
 };
