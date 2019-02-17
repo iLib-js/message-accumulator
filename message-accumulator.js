@@ -20,10 +20,6 @@
 
 import Node from 'ilib-tree-node';
 
-function clone(obj) {
-    return obj ? Object.assign({}, obj) : {};
-}
-
 /**
  * MessageAccumulator.js - accumulate a translatable message as a string
  */
@@ -236,15 +232,6 @@ export default class MessageAccumulator {
         if (!this.prefixes) this.prefixes = [];
         if (!this.suffixes) this.suffixes = [];
 
-        function valueMap(node) {
-            if (node.type === "component") {
-                var value = clone(node.extra);
-                value.use = node.use;
-                return value;
-            }
-            return node.value;
-        }
-
         // keep stripping off parts until we haven't changed anything, or we have stripped off everything
         while (changed && this.root.children && this.root.children.length) {
             changed = false;
@@ -252,10 +239,10 @@ export default class MessageAccumulator {
             // check for "outer" components -- components that surround localizable text without adding anything to it
             while (subroot.children && subroot.children.length === 1 && subroot.children[0].type !== "text") {
                 subroot = subroot.children[0];
-                value = clone(subroot.extra);
+                value = new Node(subroot);
                 value.use = "start";
                 this.prefixes.push(value);
-                value = clone(subroot.extra);
+                value = new Node(subroot);
                 value.use = "end";
                 this.suffixes = [value].concat(this.suffixes);
 
@@ -267,7 +254,7 @@ export default class MessageAccumulator {
             // find empty components at the start
             var i = 0;
             while (i < children.length && children[i] && this._isEmpty(children[i])) {
-                this.prefixes = this.prefixes.concat(children[i].toArray().map(valueMap));
+                this.prefixes = this.prefixes.concat(children[i].toArray());
                 i++;
                 changed = true;
             }
@@ -277,7 +264,7 @@ export default class MessageAccumulator {
             // then find empty components at the end
             var i = children.length - 1;
             while (i > 0 && children[i] && this._isEmpty(children[i])) {
-                this.suffixes = children[i].toArray().map(valueMap).concat(this.suffixes);
+                this.suffixes = children[i].toArray().concat(this.suffixes);
                 i--;
                 changed = true;
             }
@@ -288,7 +275,10 @@ export default class MessageAccumulator {
                 var match = re.exec(children[0].value);
                 if (match) {
                     children[0].value = children[0].value.substring(match[0].length);
-                    this.prefixes.push(match[0]);
+                    this.prefixes.push(new Node({
+                        type: "text",
+                        value: match[0]
+                    }));
                     changed = true;
                 }
             }
@@ -298,7 +288,10 @@ export default class MessageAccumulator {
                 var match = re.exec(children[last].value);
                 if (match) {
                     children[last].value = children[last].value.substring(0, children[last].value.length - match[0].length);
-                    this.suffixes = [match[0]].concat(this.suffixes);
+                    this.suffixes = [new Node({
+                        type: "text",
+                        value: match[0]
+                    })].concat(this.suffixes);
                     changed = true;
                 }
             }
