@@ -928,7 +928,7 @@ module.exports.testAccumulator = {
         var prefix = source.getPrefix();
         test.ok(prefix);
         test.equal(prefix.length, 1);
-        test.deepEqual(prefix[0], {name: "a", use: "start"});
+        test.contains(prefix[0], {extra: {name: "a"}, use: "start"});
 
         test.done();
     },
@@ -956,7 +956,7 @@ module.exports.testAccumulator = {
         var suffix = source.getSuffix();
         test.ok(suffix);
         test.equal(suffix.length, 1);
-        test.deepEqual(suffix[0], {name: "a", use: "end"});
+        test.contains(suffix[0], {extra: {name: "a"}, use: "end"});
 
         test.done();
     },
@@ -1017,9 +1017,9 @@ module.exports.testAccumulator = {
         var prefix = source.getPrefix();
         test.ok(prefix);
         test.equal(prefix.length, 3);
-        test.deepEqual(prefix[0], {name: "a", use: "start"});
-        test.deepEqual(prefix[1], {name: "x", use: "start"});
-        test.deepEqual(prefix[2], {name: "y", use: "start"});
+        test.contains(prefix[0], {extra: {name: "a"}, use: "start"});
+        test.contains(prefix[1], {extra: {name: "x"}, use: "start"});
+        test.contains(prefix[2], {extra: {name: "y"}, use: "start"});
 
         test.done();
     },
@@ -1052,9 +1052,9 @@ module.exports.testAccumulator = {
         var suffix = source.getSuffix();
         test.ok(suffix);
         test.equal(suffix.length, 3);
-        test.deepEqual(suffix[0], {name: "y", use: "end"});
-        test.deepEqual(suffix[1], {name: "x", use: "end"});
-        test.deepEqual(suffix[2], {name: "a", use: "end"});
+        test.contains(suffix[0], {extra: {name: "y"}, use: "end"});
+        test.contains(suffix[1], {extra: {name: "x"}, use: "end"});
+        test.contains(suffix[2], {extra: {name: "a"}, use: "end"});
 
         test.done();
     },
@@ -1390,17 +1390,17 @@ module.exports.testAccumulator = {
         var prefix = source.getPrefix();
         test.ok(prefix);
         test.equal(prefix.length, 11);
-        test.deepEqual(prefix[0], {name: "a", use: "start"});
-        test.deepEqual(prefix[1], {name: "b", use: "start"});
-        test.equals(prefix[2], "  \t ");
-        test.deepEqual(prefix[3], {name: "b", use: "end"});
-        test.deepEqual(prefix[4], {name: "c", use: "start"});
-        test.equals(prefix[5], "\n");
-        test.deepEqual(prefix[6], {name: "d", use: "start"});
-        test.equals(prefix[7], "\n");
-        test.deepEqual(prefix[8], {name: "e", use: "startend"});
-        test.deepEqual(prefix[9], {name: "d", use: "end"});
-        test.equals(prefix[10], "\n  ");
+        test.contains(prefix[0], {extra: {name: "a"}, use: "start"});
+        test.contains(prefix[1], {extra: {name: "b"}, use: "start"});
+        test.contains(prefix[2], {value: "  \t "});
+        test.contains(prefix[3], {extra: {name: "b"}, use: "end"});
+        test.contains(prefix[4], {extra: {name: "c"}, use: "start"});
+        test.contains(prefix[5], {value: "\n"});
+        test.contains(prefix[6], {extra: {name: "d"}, use: "start"});
+        test.contains(prefix[7], {value: "\n"});
+        test.contains(prefix[8], {extra: {name: "e"}, use: "startend"});
+        test.contains(prefix[9], {extra: {name: "d"}, use: "end"});
+        test.contains(prefix[10], {value: "\n  "});
 
         test.done();
     },
@@ -1443,12 +1443,12 @@ module.exports.testAccumulator = {
         test.ok(prefix);
         test.equal(prefix.length, 6);
 
-        test.equals(prefix[0], "   ");
-        test.deepEqual(prefix[1], {name: "g", use: "start"});
-        test.equals(prefix[2], "\n");
-        test.deepEqual(prefix[3], {name: "g", use: "end"});
-        test.deepEqual(prefix[4], {name: "c", use: "end"});
-        test.deepEqual(prefix[5], {name: "a", use: "end"});
+        test.contains(prefix[0], {value: "   "});
+        test.contains(prefix[1], {extra: {name: "g"}, use: "start"});
+        test.contains(prefix[2], {value: "\n"});
+        test.contains(prefix[3], {extra: {name: "g"}, use: "end"});
+        test.contains(prefix[4], {extra: {name: "c"}, use: "end"});
+        test.contains(prefix[5], {extra: {name: "a"}, use: "end"});
 
         test.done();
     },
