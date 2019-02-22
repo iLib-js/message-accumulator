@@ -20,6 +20,11 @@
 
 import Node from 'ilib-tree-node';
 
+// take care of all Unicode whitespace as well as what JS thinks is whitespace
+var whiteSpaceStart = /^[\s\u2000-\u200D\u2028\u2029\u202F\u205F\u2060]+/u;
+var whiteSpaceEnd = /[\s\u2000-\u200D\u2028\u2029\u202F\u205F\u2060]+$/u;
+var whiteSpace = /[\s\u2000-\u200D\u2028\u2029\u202F\u205F\u2060]+/ug;
+
 /**
  * MessageAccumulator.js - accumulate a translatable message as a string
  */
@@ -197,7 +202,8 @@ export default class MessageAccumulator {
      * @private
      */
     _isEmpty(node) {
-        if (node.type === "text" && node.value.trim() !== "") return false;
+        whiteSpace.lastIndex = 0;
+        if (node.type === "text" && node.value.replace(whiteSpace, '') !== "") return false;
         if (node.type === "component" && node.children && node.children.length) {
             return node.children.every(child => {
                 return this._isEmpty(child);
@@ -271,8 +277,8 @@ export default class MessageAccumulator {
 
             // now strip off the leading and trailing whitespace
             if (children.length && children[0].type === "text") {
-                var re = /^\s+/;
-                var match = re.exec(children[0].value);
+                whiteSpaceStart.lastIndex = 0;
+                var match = whiteSpaceStart.exec(children[0].value);
                 if (match) {
                     children[0].value = children[0].value.substring(match[0].length);
                     this.prefixes.push(new Node({
@@ -284,8 +290,8 @@ export default class MessageAccumulator {
             }
             var last = children.length-1;
             if (children.length && children[last].type === "text") {
-                var re = /\s+$/;
-                var match = re.exec(children[last].value);
+                whiteSpaceEnd.lastIndex = 0;
+                var match = whiteSpaceEnd.exec(children[last].value);
                 if (match) {
                     children[last].value = children[last].value.substring(0, children[last].value.length - match[0].length);
                     this.suffixes = [new Node({
@@ -388,7 +394,8 @@ export default class MessageAccumulator {
      * @return {number} the length of the non-whitespace text accumulated so far
      */
     getTextLength() {
-        return this.text.replace(/\s+/g, '').trim().length;
+        whiteSpace.lastIndex = 0;
+        return this.text.replace(whiteSpace, '').trim().length;
     }
 
     /**

@@ -736,6 +736,23 @@ module.exports.testAccumulator = {
         test.done();
     },
 
+    testMessageAccumulatorGetTextLengthIgnoreUnicodeWhiteSpace: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.push({foo: "bar"});
+        ma.addText("            ​‌‍ ⁠");
+        ma.pop();
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getTextLength(), 0);
+
+        test.done();
+    },
+
     testMessageAccumulatorCreateWithSource: function(test) {
         test.expect(7);
 
@@ -1158,6 +1175,22 @@ module.exports.testAccumulator = {
         test.done();
     },
 
+    testMessageAccumulatorMinimizeWhiteSpace: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "i"});
+        source.addText("    \n\t   ");
+        source.pop();
+
+        test.equal(source.getString(), "<c0>    \n\t   </c0>");
+        test.equal(source.getMinimalString(), "");
+
+        test.done();
+    },
+
     testMessageAccumulatorMinimizeWhitespace: function(test) {
         test.expect(5);
 
@@ -1405,6 +1438,56 @@ module.exports.testAccumulator = {
         test.done();
     },
 
+    testMessageAccumulatorMinimizeAllWhiteSpacePrefix: function(test) {
+        test.expect(9);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("  \t\t \n     ");
+        source.pop();
+
+        test.ok(source.root.children);
+        test.equal(source.root.children.length, 1);
+
+        test.equal(source.getString(), "<c0>  \t\t \n     </c0>");
+        test.equal(source.getMinimalString(), "");
+
+        var prefix = source.getPrefix();
+        test.ok(prefix);
+        test.equal(prefix.length, 2);
+        test.contains(prefix[0], {extra: {name: "a"}, use: "start"});
+        test.contains(prefix[1], {value: "  \t\t \n     "});
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeUnicodeWhiteSpacePrefix: function(test) {
+        test.expect(9);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("            ​‌‍ ⁠"); // includes non-breaking space and other Unicode space chars
+        source.pop();
+
+        test.ok(source.root.children);
+        test.equal(source.root.children.length, 1);
+
+        test.equal(source.getString(), "<c0>            ​‌‍ ⁠</c0>");
+        test.equal(source.getMinimalString(), "");
+
+        var prefix = source.getPrefix();
+        test.ok(prefix);
+        test.equal(prefix.length, 2);
+        test.contains(prefix[0], {extra: {name: "a"}, use: "start"});
+        test.contains(prefix[1], {value: "            ​‌‍ ⁠"});
+
+        test.done();
+    },
+
     testMessageAccumulatorMinimizeVeryComplexSuffix: function(test) {
         test.expect(13);
 
@@ -1449,6 +1532,56 @@ module.exports.testAccumulator = {
         test.contains(prefix[3], {extra: {name: "g"}, use: "end"});
         test.contains(prefix[4], {extra: {name: "c"}, use: "end"});
         test.contains(prefix[5], {extra: {name: "a"}, use: "end"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeAllWhitespaceSuffix: function(test) {
+        test.expect(8);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("  \t\t \n     ");
+        source.pop();
+
+        test.ok(source.root.children);
+        test.equal(source.root.children.length, 1);
+
+        test.equal(source.getString(), "<c0>  \t\t \n     </c0>");
+        test.equal(source.getMinimalString(), "");
+
+        var suffix = source.getSuffix();
+        test.ok(suffix);
+        test.equal(suffix.length, 1);
+
+        test.contains(suffix[0], {extra: {name: "a"}, use: "end"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeUnicodeWhitespaceSuffix: function(test) {
+        test.expect(8);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("            ​‌‍ ⁠"); // includes non-breaking space and other Unicode space chars
+        source.pop();
+
+        test.ok(source.root.children);
+        test.equal(source.root.children.length, 1);
+
+        test.equal(source.getString(), "<c0>            ​‌‍ ⁠</c0>");
+        test.equal(source.getMinimalString(), "");
+
+        var suffix = source.getSuffix();
+        test.ok(suffix);
+        test.equal(suffix.length, 1);
+
+        test.contains(suffix[0], {extra: {name: "a"}, use: "end"});
 
         test.done();
     },
