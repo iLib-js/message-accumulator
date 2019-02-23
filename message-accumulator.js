@@ -145,7 +145,9 @@ export default class MessageAccumulator {
             type: 'component',
             parent: this.currentLevel,
             index: this.componentIndex++,
-            extra
+            extra,
+            closed: false
+
         });
         this.currentLevel.add(newNode);
         this.currentLevel = newNode;
@@ -167,6 +169,7 @@ export default class MessageAccumulator {
             return;
         }
         var extra = this.currentLevel.extra;
+        this.currentLevel.closed = true;
         this.currentLevel = this.currentLevel.parent;
         return extra;
     }

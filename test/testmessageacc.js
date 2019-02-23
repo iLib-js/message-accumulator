@@ -386,6 +386,41 @@ module.exports.testAccumulator = {
         test.done();
     },
 
+    testMessageAccumulatorBuildNotClosed: function(test) {
+        test.expect(5);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.push(5);
+        ma.addText("foo");
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 1);
+        test.equal(ma.root.children[0].children.length, 1);
+        test.ok(!ma.root.children[0].closed);
+
+        test.done();
+    },
+
+    testMessageAccumulatorBuildClosed: function(test) {
+        test.expect(5);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.push(5);
+        ma.addText("foo");
+        ma.pop();
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 1);
+        test.equal(ma.root.children[0].children.length, 1);
+        test.ok(ma.root.children[0].closed);
+
+        test.done();
+    },
+
     testMessageAccumulatorGetStringSimple: function(test) {
         test.expect(2);
 
@@ -411,6 +446,24 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorGetStringWithComponent: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("This is ");
+        ma.push(5);
+        ma.addText("a test");
+        ma.pop();
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getString(), "This is <c0>a test</c0>");
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetStringWithComponentUnbalanced: function(test) {
         test.expect(3);
 
         let ma = new MessageAccumulator();
@@ -1690,7 +1743,7 @@ module.exports.testAccumulator = {
         source.addText(" decomposition system.");
 
         test.equal(source.getString(), "This is a test of the <c0/> decomposition system.");
-        
+
         test.done();
     },
 
