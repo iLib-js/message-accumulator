@@ -386,6 +386,41 @@ module.exports.testAccumulator = {
         test.done();
     },
 
+    testMessageAccumulatorBuildNotClosed: function(test) {
+        test.expect(5);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.push(5);
+        ma.addText("foo");
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 1);
+        test.equal(ma.root.children[0].children.length, 1);
+        test.ok(!ma.root.children[0].closed);
+
+        test.done();
+    },
+
+    testMessageAccumulatorBuildClosed: function(test) {
+        test.expect(5);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.push(5);
+        ma.addText("foo");
+        ma.pop();
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 1);
+        test.equal(ma.root.children[0].children.length, 1);
+        test.ok(ma.root.children[0].closed);
+
+        test.done();
+    },
+
     testMessageAccumulatorGetStringSimple: function(test) {
         test.expect(2);
 
@@ -411,6 +446,24 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorGetStringWithComponent: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("This is ");
+        ma.push(5);
+        ma.addText("a test");
+        ma.pop();
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getString(), "This is <c0>a test</c0>");
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetStringWithComponentUnbalanced: function(test) {
         test.expect(3);
 
         let ma = new MessageAccumulator();
@@ -736,6 +789,23 @@ module.exports.testAccumulator = {
         test.done();
     },
 
+    testMessageAccumulatorGetTextLengthIgnoreUnicodeWhiteSpace: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.push({foo: "bar"});
+        ma.addText("            ​‌‍ ⁠");
+        ma.pop();
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getTextLength(), 0);
+
+        test.done();
+    },
+
     testMessageAccumulatorCreateWithSource: function(test) {
         test.expect(7);
 
@@ -928,7 +998,7 @@ module.exports.testAccumulator = {
         var prefix = source.getPrefix();
         test.ok(prefix);
         test.equal(prefix.length, 1);
-        test.deepEqual(prefix[0], {name: "a", use: "start"});
+        test.contains(prefix[0], {extra: {name: "a"}, use: "start"});
 
         test.done();
     },
@@ -956,7 +1026,7 @@ module.exports.testAccumulator = {
         var suffix = source.getSuffix();
         test.ok(suffix);
         test.equal(suffix.length, 1);
-        test.deepEqual(suffix[0], {name: "a", use: "end"});
+        test.contains(suffix[0], {extra: {name: "a"}, use: "end"});
 
         test.done();
     },
@@ -1017,9 +1087,9 @@ module.exports.testAccumulator = {
         var prefix = source.getPrefix();
         test.ok(prefix);
         test.equal(prefix.length, 3);
-        test.deepEqual(prefix[0], {name: "a", use: "start"});
-        test.deepEqual(prefix[1], {name: "x", use: "start"});
-        test.deepEqual(prefix[2], {name: "y", use: "start"});
+        test.contains(prefix[0], {extra: {name: "a"}, use: "start"});
+        test.contains(prefix[1], {extra: {name: "x"}, use: "start"});
+        test.contains(prefix[2], {extra: {name: "y"}, use: "start"});
 
         test.done();
     },
@@ -1052,9 +1122,9 @@ module.exports.testAccumulator = {
         var suffix = source.getSuffix();
         test.ok(suffix);
         test.equal(suffix.length, 3);
-        test.deepEqual(suffix[0], {name: "y", use: "end"});
-        test.deepEqual(suffix[1], {name: "x", use: "end"});
-        test.deepEqual(suffix[2], {name: "a", use: "end"});
+        test.contains(suffix[0], {extra: {name: "y"}, use: "end"});
+        test.contains(suffix[1], {extra: {name: "x"}, use: "end"});
+        test.contains(suffix[2], {extra: {name: "a"}, use: "end"});
 
         test.done();
     },
@@ -1154,6 +1224,22 @@ module.exports.testAccumulator = {
 
         test.equal(source.getString(), "<c0>Test</c0>");
         test.equal(source.getMinimalString(), "Test");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeWhiteSpace: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "i"});
+        source.addText("    \n\t   ");
+        source.pop();
+
+        test.equal(source.getString(), "<c0>    \n\t   </c0>");
+        test.equal(source.getMinimalString(), "");
 
         test.done();
     },
@@ -1390,17 +1476,67 @@ module.exports.testAccumulator = {
         var prefix = source.getPrefix();
         test.ok(prefix);
         test.equal(prefix.length, 11);
-        test.deepEqual(prefix[0], {name: "a", use: "start"});
-        test.deepEqual(prefix[1], {name: "b", use: "start"});
-        test.equals(prefix[2], "  \t ");
-        test.deepEqual(prefix[3], {name: "b", use: "end"});
-        test.deepEqual(prefix[4], {name: "c", use: "start"});
-        test.equals(prefix[5], "\n");
-        test.deepEqual(prefix[6], {name: "d", use: "start"});
-        test.equals(prefix[7], "\n");
-        test.deepEqual(prefix[8], {name: "e", use: "startend"});
-        test.deepEqual(prefix[9], {name: "d", use: "end"});
-        test.equals(prefix[10], "\n  ");
+        test.contains(prefix[0], {extra: {name: "a"}, use: "start"});
+        test.contains(prefix[1], {extra: {name: "b"}, use: "start"});
+        test.contains(prefix[2], {value: "  \t "});
+        test.contains(prefix[3], {extra: {name: "b"}, use: "end"});
+        test.contains(prefix[4], {extra: {name: "c"}, use: "start"});
+        test.contains(prefix[5], {value: "\n"});
+        test.contains(prefix[6], {extra: {name: "d"}, use: "start"});
+        test.contains(prefix[7], {value: "\n"});
+        test.contains(prefix[8], {extra: {name: "e"}, use: "startend"});
+        test.contains(prefix[9], {extra: {name: "d"}, use: "end"});
+        test.contains(prefix[10], {value: "\n  "});
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeAllWhiteSpacePrefix: function(test) {
+        test.expect(9);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("  \t\t \n     ");
+        source.pop();
+
+        test.ok(source.root.children);
+        test.equal(source.root.children.length, 1);
+
+        test.equal(source.getString(), "<c0>  \t\t \n     </c0>");
+        test.equal(source.getMinimalString(), "");
+
+        var prefix = source.getPrefix();
+        test.ok(prefix);
+        test.equal(prefix.length, 2);
+        test.contains(prefix[0], {extra: {name: "a"}, use: "start"});
+        test.contains(prefix[1], {value: "  \t\t \n     "});
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeUnicodeWhiteSpacePrefix: function(test) {
+        test.expect(9);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("            ​‌‍ ⁠"); // includes non-breaking space and other Unicode space chars
+        source.pop();
+
+        test.ok(source.root.children);
+        test.equal(source.root.children.length, 1);
+
+        test.equal(source.getString(), "<c0>            ​‌‍ ⁠</c0>");
+        test.equal(source.getMinimalString(), "");
+
+        var prefix = source.getPrefix();
+        test.ok(prefix);
+        test.equal(prefix.length, 2);
+        test.contains(prefix[0], {extra: {name: "a"}, use: "start"});
+        test.contains(prefix[1], {value: "            ​‌‍ ⁠"});
 
         test.done();
     },
@@ -1443,12 +1579,62 @@ module.exports.testAccumulator = {
         test.ok(prefix);
         test.equal(prefix.length, 6);
 
-        test.equals(prefix[0], "   ");
-        test.deepEqual(prefix[1], {name: "g", use: "start"});
-        test.equals(prefix[2], "\n");
-        test.deepEqual(prefix[3], {name: "g", use: "end"});
-        test.deepEqual(prefix[4], {name: "c", use: "end"});
-        test.deepEqual(prefix[5], {name: "a", use: "end"});
+        test.contains(prefix[0], {value: "   "});
+        test.contains(prefix[1], {extra: {name: "g"}, use: "start"});
+        test.contains(prefix[2], {value: "\n"});
+        test.contains(prefix[3], {extra: {name: "g"}, use: "end"});
+        test.contains(prefix[4], {extra: {name: "c"}, use: "end"});
+        test.contains(prefix[5], {extra: {name: "a"}, use: "end"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeAllWhitespaceSuffix: function(test) {
+        test.expect(8);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("  \t\t \n     ");
+        source.pop();
+
+        test.ok(source.root.children);
+        test.equal(source.root.children.length, 1);
+
+        test.equal(source.getString(), "<c0>  \t\t \n     </c0>");
+        test.equal(source.getMinimalString(), "");
+
+        var suffix = source.getSuffix();
+        test.ok(suffix);
+        test.equal(suffix.length, 1);
+
+        test.contains(suffix[0], {extra: {name: "a"}, use: "end"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeUnicodeWhitespaceSuffix: function(test) {
+        test.expect(8);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("            ​‌‍ ⁠"); // includes non-breaking space and other Unicode space chars
+        source.pop();
+
+        test.ok(source.root.children);
+        test.equal(source.root.children.length, 1);
+
+        test.equal(source.getString(), "<c0>            ​‌‍ ⁠</c0>");
+        test.equal(source.getMinimalString(), "");
+
+        var suffix = source.getSuffix();
+        test.ok(suffix);
+        test.equal(suffix.length, 1);
+
+        test.contains(suffix[0], {extra: {name: "a"}, use: "end"});
 
         test.done();
     },
@@ -1557,7 +1743,7 @@ module.exports.testAccumulator = {
         source.addText(" decomposition system.");
 
         test.equal(source.getString(), "This is a test of the <c0/> decomposition system.");
-        
+
         test.done();
     },
 
