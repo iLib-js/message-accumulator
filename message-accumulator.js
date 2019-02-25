@@ -21,9 +21,14 @@
 import Node from 'ilib-tree-node';
 
 // take care of all Unicode whitespace as well as what JS thinks is whitespace
-var whiteSpaceStart = /^[\s\u2000-\u200D\u2028\u2029\u202F\u205F\u2060]+/u;
-var whiteSpaceEnd = /[\s\u2000-\u200D\u2028\u2029\u202F\u205F\u2060]+$/u;
-var whiteSpace = /[\s\u2000-\u200D\u2028\u2029\u202F\u205F\u2060]+/ug;
+let whiteSpaceStart = /^[\s\u2000-\u200D\u2028\u2029\u202F\u205F\u2060]+/u;
+let whiteSpaceEnd = /[\s\u2000-\u200D\u2028\u2029\u202F\u205F\u2060]+$/u;
+let whiteSpace = /[\s\u2000-\u200D\u2028\u2029\u202F\u205F\u2060]+/ug;
+
+// use [\s\S]*? instead of .* with the "s" flag because node 6 and earlier throw errors about the unknown "s" flag
+let re = /(<(c\d+)>[\s\S]*?<\/\2>)/g;
+let first = /^<c(\d+)>/;
+let selfclosing = /(<c(\d+)\/>)/g;
 
 /**
  * MessageAccumulator.js - accumulate a translatable message as a string
@@ -69,11 +74,9 @@ export default class MessageAccumulator {
      * @private
      */
     _parse(string, mapping, parent) {
-        let match,
-            re = /(<(c\d+)>.*<\/\2>)/gs,
-            first = /^<c(\d+)>/,
-            selfclosing = /(<c(\d+)\/>)/g;
+        let match;
 
+        re.lastIndex = 0;
         let parts = string.split(re);
 
         for (var i = 0; i < parts.length; i++) {
