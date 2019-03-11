@@ -94,7 +94,6 @@ module.exports.testAccumulator = {
         test.done();
     },
 
-
     testMessageAccumulatorFromStringWith2Components: function(test) {
         test.expect(4);
 
@@ -145,6 +144,120 @@ module.exports.testAccumulator = {
                         {
                             children: [
                                 {value: "decomposition"}
+                            ],
+                            index: 1
+                        },
+                        {value: " system"}
+                    ],
+                    index: 0
+                },
+                {value: "."}
+            ]
+        });
+
+        test.done();
+    },
+
+    testMessageAccumulatorFromStringWithParam: function(test) {
+        test.expect(4);
+
+        let ma = MessageAccumulator.create("This is a <p0/> of the decomposition system.");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 3);
+
+        test.contains(ma.root, {
+            children: [
+                {value: "This is a "},
+                {
+                    type: 'param',
+                    index: 0
+                },
+                {value: " of the decomposition system."}
+            ]
+        });
+
+        test.done();
+    },
+
+    testMessageAccumulatorFromStringWithMultipleParams: function(test) {
+        test.expect(4);
+
+        let ma = MessageAccumulator.create("This is a <p0/> of the decomposition <p1/>.");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 5);
+
+        test.contains(ma.root, {
+            children: [
+                {value: "This is a "},
+                {
+                    type: 'param',
+                    index: 0
+                },
+                {value: " of the decomposition "},
+                {
+                    type: 'param',
+                    index: 1
+                },
+                {value: "."}
+            ]
+        });
+
+        test.done();
+    },
+
+    testMessageAccumulatorFromStringWithMultipleParamsReversed: function(test) {
+        test.expect(4);
+
+        let ma = MessageAccumulator.create("This is a <p1/> of the decomposition <p0/>.");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 5);
+
+        test.contains(ma.root, {
+            children: [
+                {value: "This is a "},
+                {
+                    type: 'param',
+                    index: 1
+                },
+                {value: " of the decomposition "},
+                {
+                    type: 'param',
+                    index: 0
+                },
+                {value: "."}
+            ]
+        });
+
+        test.done();
+    },
+
+    testMessageAccumulatorFromStringWithParamsAndComponents: function(test) {
+        test.expect(4);
+
+        let ma = MessageAccumulator.create("This is a <c0>test of the <c1><p0/></c1> system</c0>.");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 3);
+
+        test.contains(ma.root, {
+            children: [
+                {value: "This is a "},
+                {
+                    children: [
+                        {value: "test of the "},
+                        {
+                            children: [
+                                {
+                                    type: 'param',
+                                    index: 0
+                                }
                             ],
                             index: 1
                         },
@@ -212,6 +325,36 @@ module.exports.testAccumulator = {
         test.equal(ma.root.children[0].value, "   This is a test.");
         test.equal(ma.root.children[1].value, " ");
         test.equal(ma.root.children[2].value, "\n");
+
+        test.done();
+    },
+
+    testMessageAccumulatorBuildAddParam: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addParam({foo: "bar"});
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 1);
+
+        test.done();
+    },
+
+    testMessageAccumulatorBuildAddParamRightNumberOfChildren: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("This is a test ");
+        ma.addParam({foo: "bar"});
+        ma.addText(" other text.");
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 3);
 
         test.done();
     },
@@ -353,6 +496,24 @@ module.exports.testAccumulator = {
         test.ok(ma.root.children);
         test.equal(ma.root.children.length, 1);
         test.equal(ma.root.children[0].children.length, 1);
+
+        test.done();
+    },
+
+    testMessageAccumulatorBuildPopNormalWithParam: function(test) {
+        test.expect(5);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.push(5);
+        ma.addText("foo");
+        ma.addParam(3);
+        test.equal(ma.pop(), 5);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 1);
+        test.equal(ma.root.children[0].children.length, 2);
 
         test.done();
     },
@@ -592,15 +753,78 @@ module.exports.testAccumulator = {
         test.done();
     },
 
+    testMessageAccumulatorGetStringWithParam: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("This is a ");
+        ma.addParam({value: "{test}"});
+        ma.addText(" of the ");
+        ma.addText("emergency message system");
+        ma.addText(".");
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getString(), "This is a <p0/> of the emergency message system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetStringWithMultipleParams: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("This is a ");
+        ma.addParam({value: "{test}"});
+        ma.addText(" of the ");
+        ma.addText("emergency message ");
+        ma.addParam({value: "{system}"});
+        ma.addText(".");
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getString(), "This is a <p0/> of the emergency message <p1/>.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetStringWithParamsAndComponents: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("This is a ");
+        ma.push(5);
+        ma.addParam({value: "{test}"});
+        ma.addText(" of the ");
+        ma.push(4);
+        ma.addText("emergency message ");
+        ma.pop();
+        ma.addParam({value: "{system}"});
+        ma.addText(".");
+        ma.pop();
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getString(), "This is a <c0><p0/> of the <c1>emergency message </c1><p1/>.</c0>");
+
+        test.done();
+    },
+
     testMessageAccumulatorParseAndThenGetString: function(test) {
         test.expect(3);
 
-        let ma = MessageAccumulator.create("<c0>This is <c1>a test of the <c2>emergency message system</c2>.</c1></c0>");
+        let ma = MessageAccumulator.create("<c0>This is <c1>a <p0/> of the <c2>emergency message system</c2>.</c1></c0>");
         test.ok(ma);
 
         test.ok(ma.root.children);
 
-        test.equal(ma.getString(), "<c0>This is <c1>a test of the <c2>emergency message system</c2>.</c1></c0>");
+        test.equal(ma.getString(), "<c0>This is <c1>a <p0/> of the <c2>emergency message system</c2>.</c1></c0>");
 
         test.done();
     },
@@ -659,6 +883,36 @@ module.exports.testAccumulator = {
         test.done();
     },
 
+    testMessageAccumulatorGetParam: function(test) {
+        test.expect(5);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.push(86);
+        ma.addText("This is ");
+        ma.push(5);
+        ma.addText("a ");
+        ma.addParam({value: "{test}"});
+        ma.addText(" of the ");
+        ma.push(4);
+        ma.addParam({value: "{emergency}"});
+        ma.addText(" message ");
+        ma.addParam({value: "{system}"});
+        ma.pop();
+        ma.addText(".");
+        ma.pop();
+        ma.pop();
+
+        test.ok(ma.root.children);
+
+        test.deepEqual(ma.getParam(0), {value: "{test}"});
+        test.deepEqual(ma.getParam(1), {value: "{emergency}"});
+        test.deepEqual(ma.getParam(2), {value: "{system}"});
+
+        test.done();
+    },
+
     testMessageAccumulatorGetMapping: function(test) {
         test.expect(3);
 
@@ -668,10 +922,12 @@ module.exports.testAccumulator = {
         ma.push({foo: "bar"});
         ma.addText("This is ");
         ma.push({type: "component"});
-        ma.addText("a test");
+        ma.addText("a ");
+        ma.addParam({value: "{test}"});
         ma.addText(" of the ");
         ma.push({name: "a"});
-        ma.addText("emergency message system");
+        ma.addText("emergency message ");
+        ma.addParam({value: "{system}"});
         ma.pop();
         ma.addText(".");
         ma.pop();
@@ -682,7 +938,9 @@ module.exports.testAccumulator = {
         test.deepEqual(ma.getMapping(), {
             "c0": {foo: "bar"},
             "c1": {type: "component"},
-            "c2": {name: "a"}
+            "c2": {name: "a"},
+            "p0": {value: "{test}"},
+            "p1": {value: "{system}"}
         });
 
         test.done();
@@ -750,6 +1008,22 @@ module.exports.testAccumulator = {
         test.ok(ma.root.children);
 
         test.equal(ma.getTextLength(), 4);
+
+        test.done();
+    },
+
+    testMessageAccumulatorGetTextLengthWithParam: function(test) {
+        test.expect(3);
+
+        let ma = new MessageAccumulator();
+        test.ok(ma);
+
+        ma.addText("test ");
+        ma.addParam("%1");
+
+        test.ok(ma.root.children);
+
+        test.equal(ma.getTextLength(), 9);
 
         test.done();
     },
@@ -823,7 +1097,7 @@ module.exports.testAccumulator = {
         source.addText(" towards the goal.");
 
         // The translation has the components swapped from the English
-        let ma = MessageAccumulator.create("Einen großen <c1>Tritt</c1> in Richtung Tor geben Sie am <c0>Ball</c0> hin.", source);
+        let ma = MessageAccumulator.create("Einen großen <c1>Tritt</c1> in Richtung Tors geben Sie am <c0>Ball</c0> hin.", source);
         test.ok(ma);
 
         test.ok(ma.root.children);
@@ -838,10 +1112,69 @@ module.exports.testAccumulator = {
                     ],
                     index: 1
                 },
-                {value: " in Richtung Tor geben Sie am "},
+                {value: " in Richtung Tors geben Sie am "},
                 {
                     children: [
                         {value: "Ball"}
+                    ],
+                    index: 0
+                },
+                {value: " hin."}
+            ]
+        });
+
+        // now check the extra information is attached in the right place
+        test.deepEqual(ma.root.children[1].extra, {name: "i"});
+        test.deepEqual(ma.root.children[3].extra, {name: "b"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorCreateWithSourceAndParams: function(test) {
+        test.expect(7);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ");
+        source.addParam("{ball}");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addParam("{kick}");
+        source.pop();
+        source.addText(" towards the goal.");
+
+        // The translation has the components swapped from the English
+        let ma = MessageAccumulator.create("Einen großen <c1><p1/></c1> in Richtung Tors geben Sie am <c0><p0/></c0> hin.", source);
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 5);
+
+        test.contains(ma.root, {
+            children: [
+                {value: "Einen großen "},
+                {
+                    type: 'component',
+                    children: [
+                        {
+                            type: 'param',
+                            index: 1
+                        }
+                    ],
+                    index: 1
+                },
+                {value: " in Richtung Tors geben Sie am "},
+                {
+                    type: 'component',
+                    children: [
+                        {
+                            type: 'param',
+                            index: 0
+                        }
                     ],
                     index: 0
                 },
@@ -909,7 +1242,7 @@ module.exports.testAccumulator = {
     },
 
     testMessageAccumulatorGetCurrentLevelDeep: function(test) {
-        test.expect(10);
+        test.expect(11);
 
         let ma = new MessageAccumulator();
         test.ok(ma);
@@ -917,6 +1250,10 @@ module.exports.testAccumulator = {
         test.equal(ma.getCurrentLevel(), 0);
 
         ma.addText("You give ");
+
+        test.equal(ma.getCurrentLevel(), 0);
+
+        ma.addParam("{test}");
 
         test.equal(ma.getCurrentLevel(), 0);
 
@@ -1027,6 +1364,56 @@ module.exports.testAccumulator = {
         test.ok(suffix);
         test.equal(suffix.length, 1);
         test.contains(suffix[0], {extra: {name: "a"}, use: "end"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeOuterComponentSelfClosing: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.pop();
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+
+        test.equal(source.getString(), "<c0/>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.");
+        test.equal(source.getMinimalString(), "You give <c0>the ball</c0> a big <c1>kick</c1> towards the goal.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeOuterComponentsButNotParams: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addParam("{test}");
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+
+        test.equal(source.getString(), "<c0><p0/>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0>");
+        test.equal(source.getMinimalString(), "<p0/>You give <c0>the ball</c0> a big <c1>kick</c1> towards the goal.");
 
         test.done();
     },
@@ -1150,6 +1537,31 @@ module.exports.testAccumulator = {
 
         test.equal(source.getString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0> After you score, you celebrate.");
         test.equal(source.getMinimalString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0> After you score, you celebrate.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorDontMinimizeNonOuterComponentsWithParams: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"});
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+        source.addParam("%1s@");
+
+        test.equal(source.getString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0><p0/>");
+        test.equal(source.getMinimalString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0><p0/>");
 
         test.done();
     },
@@ -1285,6 +1697,21 @@ module.exports.testAccumulator = {
 
         test.equal(ma.getString(), "<c0>    </c0>This is a test of the <c1>decomposition</c1> system.");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizePrefixComponentsWithParam: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("<c0><p0/></c0>This is a test of the <c1>decomposition</c1> system.");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 4);
+
+        test.equal(ma.getString(), "<c0><p0/></c0>This is a test of the <c1>decomposition</c1> system.");
+        test.equal(ma.getMinimalString(), "<c0><p0/></c0>This is a test of the <c1>decomposition</c1> system.");
 
         test.done();
     },
@@ -1435,6 +1862,21 @@ module.exports.testAccumulator = {
 
         test.equal(ma.getString(), "<c0><c1>  \t </c1><c2>\n<c3>\n<c4/></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
         test.equal(ma.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeVeryComplexWithMultipleLevelsAndEmbeddedParam: function(test) {
+        test.expect(5);
+
+        let ma = MessageAccumulator.create("<c0><c1>  \t </c1><c2>\n<c3>\n<c4/><p0/></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 1);
+
+        test.equal(ma.getString(), "<c0><c1>  \t </c1><c2>\n<c3>\n<c4/><p0/></c3>\n  This is a test of the <c5>decomposition</c5> system.   <c6>\n</c6></c2></c0>");
+        test.equal(ma.getMinimalString(), "<c0>\n<c1/><p0/></c0>\n  This is a test of the <c2>decomposition</c2> system.");
 
         test.done();
     },
@@ -1642,7 +2084,7 @@ module.exports.testAccumulator = {
     testMessageAccumulatorMinimizeMappingStillCorrect: function(test) {
         test.expect(7);
 
-        let ma = MessageAccumulator.create("<c0>This is a test of the <c1>decomposition</c1> system.<c2/></c0>");
+        let ma = MessageAccumulator.create("<c0>This is a test of the <c1><p0/></c1> system.<c2/></c0>");
         test.ok(ma);
         let source = new MessageAccumulator();
         test.ok(source);
@@ -1650,7 +2092,7 @@ module.exports.testAccumulator = {
         source.push({name: "a"});
         source.addText("This is a test of the ");
         source.push({name: "b"});
-        source.addText("decomposition");
+        source.addParam("decomposition");
         source.pop();
         source.addText(" system.");
         source.push({name: "c"});
@@ -1663,13 +2105,15 @@ module.exports.testAccumulator = {
         test.deepEqual(source.getMapping(), {
             "c0": {name: "a"},
             "c1": {name: "b"},
-            "c2": {name: "c"}
+            "c2": {name: "c"},
+            "p0": "decomposition"
         });
 
-        test.equal(source.getMinimalString(), "This is a test of the <c0>decomposition</c0> system.");
+        test.equal(source.getMinimalString(), "This is a test of the <c0><p0/></c0> system.");
 
         test.deepEqual(source.getMapping(), {
-            "c0": {name: "b"}
+            "c0": {name: "b"},
+            "p0": "decomposition"
         });
 
         test.done();
@@ -1745,6 +2189,6 @@ module.exports.testAccumulator = {
         test.equal(source.getString(), "This is a test of the <c0/> decomposition system.");
 
         test.done();
-    },
+    }
 
 };

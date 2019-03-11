@@ -28,7 +28,7 @@ let whiteSpace = /[\s\u2000-\u200D\u2028\u2029\u202F\u205F\u2060]+/ug;
 // use [\s\S]*? instead of .* with the "s" flag because node 6 and earlier throw errors about the unknown "s" flag
 let re = /(<(c\d+)>[\s\S]*?<\/\2>)/g;
 let first = /^<c(\d+)>/;
-let selfclosing = /(<c(\d+)\/>)/g;
+let selfclosing = /(<([cp](\d+))\/>)/g; // "c" for component, "p" for parameter
 
 /**
  * MessageAccumulator.js - accumulate a translatable message as a string
@@ -45,6 +45,7 @@ export default class MessageAccumulator {
         });
         this.currentLevel = this.root;
         this.componentIndex = 0;
+        this.paramIndex = 0;
         this.text = '';
         this.mapping = {};
     }
@@ -54,7 +55,8 @@ export default class MessageAccumulator {
      * the given string and a source message accumulator. This will
      * parse the string and create the equivalent tree from it, and
      * then attach the "extra" information from the source accumulator
-     * to the equivalent nodes in the new accumulator.
+     * to the equivalent nodes in the new accumulator. This includes
+     * the source information for components and replacement parameters.
      *
      * @param {String} translated the translated string to parse
      * @param {MessageAccumulator} source the source message
@@ -102,14 +104,14 @@ export default class MessageAccumulator {
                 for (var j = 0; j < subparts.length; j++) {
                     selfclosing.lastIndex = 0;
                     if ((match = selfclosing.exec(subparts[j])) !== null) {
-                        const index = match[2];
+                        const index = match[3];
                         parent.add(new Node({
-                            type: 'component',
+                            type: match[2][0] === "p" ? 'param' : 'component',
                             parent,
                             index,
-                            extra: mapping && mapping[`c${index}`]
+                            extra: mapping && mapping[match[2]]
                         }));
-                        j++; // skip the number in the next iteration
+                        j += 2; // skip the other parts of the match in the next iteration
                     } else if (subparts[j] && subparts[j].length) {
                         // don't store empty strings
                         parent.add(new Node({
@@ -137,8 +139,64 @@ export default class MessageAccumulator {
     }
 
     /**
+     * Add a replacement parameter to the string. This is a coding
+     * for a replacement parameter in the programming language
+     * or i18n library that does substitutions. By coding the replacement
+     * parameters instead of leaving them in as-is, the strings are
+     * normalized.<p>
+     *
+     * This has two advantages. First, translations for strings
+     * with the same text but different replacement parameter styles
+     * can be shared across i18n libraries. For
+     * example, some libraries use "C" style parameters like "%1s"
+     * and others use named parameters like "{name}". That means
+     * the translation of "User %1s logged in." and of "User {name}
+     * logged in." should have the exact same translation.<p>
+     *
+     * Second, the parameters can be numbered automatically so that
+     * the translator has the freedom to re-arrange the parameters
+     * in a string with multiple parameters as required by the
+     * grammar of the target language. For some parameter styles
+     * that use numbered parameters instead of named ones, the
+     * caller may need to amend original parameter to insert the
+     * number if the original code did not have it already. That
+     * is bad style anyways and you should strongly discourage your
+     * engineers from writing strings with multiple replacement
+     * parameters that are unnumbered.<p>
+     *
+     * Parameters appear in the composed string as XML tags that
+     * are distinct from the component tags. When creating a
+     * translated string, the parameters are substituted back
+     * into the string.
+     *
+     * @param {Object} extra extra information that the caller can
+     * use to identify the original replacement parameter
+     */
+    addParam(extra) {
+        let index = this.paramIndex++;
+        this.currentLevel.add(new Node({
+            type: 'param',
+            index,
+            extra,
+            closed: true
+        }));
+        let contents = `p${index}`;
+        this.text += `<${contents}/>`;
+        this.mapping[contents] = extra;
+    }
+
+    /**
      * Create a new subcontext for a component such that all text
-     * added to the accumulator goes into the new context.
+     * added to the accumulator goes into the new context.<p>
+     *
+     * A component is represented in the composed string as an
+     * XML tag that is numbered according to the order of the
+     * components in the string. This class maintains a mapping
+     * between the component number and the given "extra"
+     * information so that this can be used to create a translated
+     * accumulator with the same extra info. (See the
+     * MessageAccumulator.create static function.)
+     *
      * @param {Object} extra extra information that the caller would
      * like to associate with the component. For example, this may
      * be a node in an AST from parsing the original text.
@@ -150,7 +208,6 @@ export default class MessageAccumulator {
             index: this.componentIndex++,
             extra,
             closed: false
-
         });
         this.currentLevel.add(newNode);
         this.currentLevel = newNode;
@@ -197,6 +254,9 @@ export default class MessageAccumulator {
                             return `<c${node.index}/>`;
                         }
                     }
+                } else if (node.type === "param") {
+                    // self-closing
+                    return `<p${node.index}/>`;
                 } else {
                     return node.value;
                 }
@@ -209,6 +269,7 @@ export default class MessageAccumulator {
      */
     _isEmpty(node) {
         whiteSpace.lastIndex = 0;
+        if (node.type === "param") return false;
         if (node.type === "text" && node.value.replace(whiteSpace, '') !== "") return false;
         if (node.type === "component" && node.children && node.children.length) {
             return node.children.every(child => {
@@ -225,6 +286,8 @@ export default class MessageAccumulator {
         if (node.type === "component") {
             node.index = this.componentIndex++;
             this.mapping[`c${node.index}`] = node.extra;
+        } else if (node.type === "param") {
+            this.mapping[`p${node.index}`] = node.extra;
         }
         if (node.children) {
             node.children.forEach(child => {
@@ -442,6 +505,21 @@ export default class MessageAccumulator {
      */
     getExtra(componentNumber) {
         return this.mapping[`c${componentNumber}`];
+    }
+
+    /**
+     * Return the mapping between a replacement parameter
+     * and the "extra" information used when creating those
+     * components.
+     *
+     * @param {number} paramNumber the number of the
+     * parameter for which the "extra" information is
+     * being sought
+     * @returns {Object} the "extra" information that was
+     * given when the parameter was created
+     */
+    getParam(paramNumber) {
+        return this.mapping[`p${paramNumber}`];
     }
 
     /**
