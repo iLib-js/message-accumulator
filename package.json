@@ -1,6 +1,6 @@
 {
     "name": "message-accumulator",
-    "version": "2.1.0",
+    "version": "2.1.1",
     "main": "./message-accumulator-es5.js",
     "main-es6": "./message-accumulator.js",
     "description": "A package to accumulate localizable snippets of HTML or JSX text and to compose and decompose them to/from localizable strings",
