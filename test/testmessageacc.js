@@ -1107,17 +1107,25 @@ module.exports.testAccumulator = {
             children: [
                 {value: "Einen großen "},
                 {
+                    type: "component",
                     children: [
                         {value: "Tritt"}
                     ],
-                    index: 1
+                    index: 1,
+                    extra: {
+                        name: "i"
+                    }
                 },
                 {value: " in Richtung Tors geben Sie am "},
                 {
+                    type: "component",
                     children: [
                         {value: "Ball"}
                     ],
-                    index: 0
+                    index: 0,
+                    extra: {
+                        name: "b"
+                    }
                 },
                 {value: " hin."}
             ]
@@ -1185,6 +1193,78 @@ module.exports.testAccumulator = {
         // now check the extra information is attached in the right place
         test.deepEqual(ma.root.children[1].extra, {name: "i"});
         test.deepEqual(ma.root.children[3].extra, {name: "b"});
+
+        test.done();
+    },
+
+    testMessageAccumulatorCreateWithSourceMissingComponents: function(test) {
+        test.expect(7);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+
+        // The translation has the components swapped from the English
+        let ma = MessageAccumulator.create("Einen großen <c1>Tritt</c1> in Richtung Tors <c2/> geben <c3>Sie</c3> am <c0>Ball</c0> hin.", source);
+        test.ok(ma);
+
+        test.ok(ma.root.children);
+        test.equal(ma.root.children.length, 9);
+
+        test.contains(ma.root, {
+            children: [
+                {value: "Einen großen "},
+                {
+                    type: "component",
+                    children: [
+                        {value: "Tritt"}
+                    ],
+                    index: 1,
+                    extra: {
+                        name: "i"
+                    }
+                },
+                {value: " in Richtung Tors "},
+                {
+                    type: "component",
+                    children: [],
+                    index: 2
+                },
+                {value: " geben "},
+                {
+                    type: "component",
+                    children: [
+                        {value: "Sie"}
+                    ],
+                    index: 3
+                },
+                {value: " am "},
+                {
+                    type: "component",
+                    children: [
+                        {value: "Ball"}
+                    ],
+                    index: 0,
+                    extra: {
+                        name: "b"
+                    }
+                },
+                {value: " hin."}
+            ]
+        });
+
+        // the components with no mapping to the source should have no "extra" property
+        test.ok(!ma.root.children[3].extra);
+        test.ok(!ma.root.children[5].extra);
 
         test.done();
     },
