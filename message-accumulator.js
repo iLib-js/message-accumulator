@@ -85,7 +85,7 @@ export default class MessageAccumulator {
             first.lastIndex = 0;
             selfclosing.lastIndex = 0;
             if ((match = first.exec(parts[i])) !== null) {
-                const index = match[1];
+                const index = parseInt(match[1]);
                 const len = match[0].length;
                 // strip off the outer tags before processing the stuff in the middle
                 const substr = parts[i].substring(len, parts[i].length - len - 1);
@@ -104,7 +104,7 @@ export default class MessageAccumulator {
                 for (var j = 0; j < subparts.length; j++) {
                     selfclosing.lastIndex = 0;
                     if ((match = selfclosing.exec(subparts[j])) !== null) {
-                        const index = match[3];
+                        const index = parseInt(match[3]);
                         parent.add(new Node({
                             type: match[2][0] === "p" ? 'param' : 'component',
                             parent,
