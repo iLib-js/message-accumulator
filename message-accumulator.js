@@ -200,14 +200,17 @@ export default class MessageAccumulator {
      * @param {Object} extra extra information that the caller would
      * like to associate with the component. For example, this may
      * be a node in an AST from parsing the original text.
+     * @param {boolean} keep true if this node should always be kept and
+     * not optimized out during the getMinimalString
      */
-    push(extra) {
+    push(extra, keep) {
         const newNode = new Node({
             type: 'component',
             parent: this.currentLevel,
             index: this.componentIndex++,
             extra,
-            closed: false
+            closed: false,
+            keep
         });
         this.currentLevel.add(newNode);
         this.currentLevel = newNode;
@@ -271,10 +274,13 @@ export default class MessageAccumulator {
         whiteSpace.lastIndex = 0;
         if (node.type === "param") return false;
         if (node.type === "text" && node.value.replace(whiteSpace, '') !== "") return false;
-        if (node.type === "component" && node.children && node.children.length) {
-            return node.children.every(child => {
-                return this._isEmpty(child);
-            });
+        if (node.type === "component") {
+            if (node.keep) return false;
+            if (node.children && node.children.length) {
+                return node.children.every(child => {
+                    return this._isEmpty(child);
+                });
+            }
         }
         return true;
     }
@@ -312,7 +318,7 @@ export default class MessageAccumulator {
             changed = false;
             var subroot = this.root;
             // check for "outer" components -- components that surround localizable text without adding anything to it
-            while (subroot.children && subroot.children.length === 1 && subroot.children[0].type !== "text") {
+            while (subroot.children && subroot.children.length === 1 && subroot.children[0].type !== "text" && !subroot.children[0].keep) {
                 subroot = subroot.children[0];
                 value = new Node(subroot);
                 value.use = "start";

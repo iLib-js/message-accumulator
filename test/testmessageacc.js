@@ -1393,6 +1393,31 @@ module.exports.testAccumulator = {
         test.done();
     },
 
+    testMessageAccumulatorMinimizeOuterComponentSelfClosingWithKeepProperty: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"}, true); // true keeps this component during getMinimalString
+        source.pop();
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+
+        test.equal(source.getString(), "<c0/>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.");
+        test.equal(source.getMinimalString(), "<c0/>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.");
+
+        test.done();
+    },
+
     testMessageAccumulatorMinimizeOuterComponentsButNotParams: function(test) {
         test.expect(3);
 
@@ -1414,6 +1439,30 @@ module.exports.testAccumulator = {
 
         test.equal(source.getString(), "<c0><p0/>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0>");
         test.equal(source.getMinimalString(), "<p0/>You give <c0>the ball</c0> a big <c1>kick</c1> towards the goal.");
+
+        test.done();
+    },
+
+    testMessageAccumulatorMinimizeOuterComponentsButNotWithKeepProperty: function(test) {
+        test.expect(3);
+
+        let source = new MessageAccumulator();
+        test.ok(source);
+
+        source.push({name: "a"}, true); // true to keep this one
+        source.addText("You give ");
+        source.push({name: "b"});
+        source.addText("the ball");
+        source.pop();
+        source.addText(" a big ");
+        source.push({name: "i"});
+        source.addText("kick");
+        source.pop();
+        source.addText(" towards the goal.");
+        source.pop();
+
+        test.equal(source.getString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0>");
+        test.equal(source.getMinimalString(), "<c0>You give <c1>the ball</c1> a big <c2>kick</c2> towards the goal.</c0>");
 
         test.done();
     },
