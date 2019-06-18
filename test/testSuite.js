@@ -26,7 +26,7 @@ var suites = require("./testSuiteFiles.js").files;
 
 // this processes all subsequent requires using babel
 process.env.BABEL_ENV = "test";
-require("babel-register");
+require("@babel/register");
 
 suites.forEach(function (path) {
     var test = require("./" + path);
