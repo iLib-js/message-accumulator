@@ -1,7 +1,7 @@
 /*
- * testSuiteFiles.js - list the test files in this directory
- * 
- * Copyright © 2019, JEDLSoft
+ * jest.config.js - jest configuration script
+ *
+ * Copyright © 2024 JEDLSoft
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var semver = require('semver');
 
-module.exports.files = [
-    "testmessageacc.js"
-];
+var settings = semver.major(process.versions.node) < 14 ?
+    {
+        transformIgnorePatterns: ['/node_modules/'],
+
+        moduleDirectories: ['node_modules', 'src']
+    } :
+    {
+        moduleFileExtensions: ['js', 'jsx', 'json'],
+
+        transform: {},
+
+        transformIgnorePatterns: ['/node_modules/'],
+
+        moduleDirectories: ['node_modules', 'src']
+    };
+
+module.exports = settings;
