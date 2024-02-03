@@ -63,7 +63,7 @@
         "prepare": "conditional-install"
     },
     "dependencies": {
-        "ilib-tree-node": "^1.3.1"
+        "ilib-tree-node": "^2.0.0"
     },
     "devDependencies": {
         "@babel/core": "^7.23.9",
