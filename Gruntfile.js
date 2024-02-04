@@ -32,7 +32,7 @@ module.exports = function(grunt) {
             },
             dist: {
                 files: [{
-                    'lib/message-accumulator.js': 'src/message-accumulator.js'
+                    'message-accumulator-es5.js': 'message-accumulator.js'
                 }]
             }
         },
@@ -40,6 +40,9 @@ module.exports = function(grunt) {
             dist: ['lib']
         }
     });
+
+    // Load the plugin that provides the "uglify" task.
+    grunt.loadNpmTasks('grunt-contrib-uglify');
 
     // Default task(s).
     grunt.registerTask('default', ['babel']);

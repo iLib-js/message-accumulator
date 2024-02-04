@@ -1,14 +1,8 @@
 {
     "name": "message-accumulator",
-    "version": "2.2.2",
-    "main": "./lib/message-accumulator.js",
-    "module": "./src/message-accumulator.js",
-    "exports": {
-        ".": {
-            "import": "./src/message-accumulator.js",
-            "require": "./lib/message-accumulator.js"
-        }
-    },
+    "version": "2.2.1",
+    "main": "./message-accumulator-es5.js",
+    "main-es6": "./message-accumulator.js",
     "description": "A package to accumulate localizable snippets of HTML or JSX text and to compose and decompose them to/from localizable strings",
     "keywords": [
         "internationalization",
@@ -40,9 +34,9 @@
         }
     ],
     "files": [
-        "docs/ilibMessageAccumulator.md",
-        "src/*",
-        "lib/*",
+        "message-accumulator.js",
+        "message-accumulator-es5.js",
+        "message-accumulator-es5.js.map",
         "README.md",
         "LICENSE"
     ],
@@ -52,37 +46,27 @@
     },
     "scripts": {
         "build": "grunt babel",
-        "dist": "npm-run-all build doc ; npm pack",
-        "test": "npm-run-all build test:cli",
-        "test:cli": "LANG=en_US.UTF8 node --experimental-vm-modules node_modules/.bin/jest --testEnvironment node",
-        "test:watch": "LANG=en_US.UTF8 node --experimental-vm-modules node_modules/.bin/jest --testEnvironment node --watch",
-        "debug": "npm run build ; node --experimental-vm-modules --inspect-brk node_modules/.bin/jest --testEnvironment node -i",
-        "clean": "git clean -f -d * ; rm -rf lib",
-        "doc": "mkdir -p docs ; jsdoc2md -c jsdoc.json --separators --source src/* -m table > docs/ilibMessageAccumulator.md",
-        "doc:html": "jsdoc -c jsdoc.json"
+        "dist": "npm run build ; npm pack",
+        "test": "npm run build ; node test/testSuite.js",
+        "debug": "npm run build ; node --inspect-brk test/testSuite.js",
+        "clean": "git clean -f -d * ; rm -rf lib"
     },
     "dependencies": {
-        "ilib-tree-node": "file:../ilib-tree-node/ilib-tree-node-1.3.1.tgz"
+        "ilib-tree-node": "^1.2.2"
     },
     "devDependencies": {
         "@babel/core": "^7.0.0",
         "@babel/preset-env": "^7.4.5",
         "@babel/register": "^7.0.0",
         "@babel/runtime": "^7.0.0",
-        "babel-loader": "^8.3.0",
-        "babel-plugin-add-module-exports": "^1.0.4",
-        "babel-plugin-module-resolver": "^5.0.0",
-        "docdash": "^2.0.2",
-        "grunt": "^1.6.1",
+        "grunt": "^1.0.4",
+        "grunt-cli": "^1.3.2",
         "grunt-babel": "^8.0.0",
-        "grunt-cli": "^1.4.3",
-        "grunt-contrib-clean": "^2.0.1",
-        "grunt-contrib-jshint": "^3.2.0",
-        "grunt-contrib-nodeunit": "^5.0.0",
-        "jest": "^26.6.3",
-        "jsdoc": "^4.0.2",
-        "jsdoc-to-markdown": "^8.0.0",
-        "load-grunt-tasks": "^5.1.0",
-        "npm-run-all": "^4.1.5"
+        "grunt-contrib-clean": "^2.0.0",
+        "grunt-contrib-jshint": "^2.1.0",
+        "grunt-contrib-nodeunit": "^2.0.0",
+        "grunt-contrib-uglify": "^4.0.1",
+        "load-grunt-tasks": "^5.0.0",
+        "nodeunit": "0.11.0"
     }
 }
