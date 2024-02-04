@@ -52,7 +52,7 @@
         "clean": "git clean -f -d * ; rm -rf lib"
     },
     "dependencies": {
-        "ilib-tree-node": "^1.2.2"
+        "ilib-tree-node": "^1.3.2"
     },
     "devDependencies": {
         "@babel/core": "^7.0.0",
